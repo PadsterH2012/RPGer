@@ -4,11 +4,11 @@ A modern React-based dashboard for RPG game management with AI-powered Dungeon M
 
 ## Project Structure
 
-- `client/`: React frontend application
-- `server/`: Node.js/Express backend server
-- `shared/`: Shared code between client and server
-- `backend/`: Python-based backend (alternative to Node.js server)
-- `prompts/`: Prompt files for AI agents
+- `App/client/`: React frontend application
+- `App/server/`: Node.js/Express backend server
+- `App/shared/`: Shared code between client and server
+- `App/backend/`: Python-based backend (alternative to Node.js server)
+- `App/prompts/`: Prompt files for AI agents (DMA, CMA, CRA, etc.)
 
 ## Prerequisites
 
@@ -127,6 +127,26 @@ RPGer uses a tiered approach to AI models:
 - **Tier 3**: `anthropic/claude-3-haiku-20240307` - Highest quality, highest cost
 
 For more details on the OpenRouter integration, see [OpenRouter Integration](Docs/Backend/Integration/OpenRouterIntegration.md).
+
+## Agent Prompts
+
+RPGer uses a system of specialized AI agents, each with its own prompt file:
+
+- **DMA (Dungeon Master Agent)**: Accepts player actions and provides basic responses
+- **CMA (Character Management Agent)**: Handles character stats, inventory, and abilities
+- **CRA (Combat Resolution Agent)**: Resolves combat actions and calculates damage
+- And more...
+
+All agent prompts are stored in the `App/prompts/` directory. Each prompt follows a naming convention:
+```
+{agent_code}_{tier}_prompt.txt
+```
+
+For example:
+- `dma_tier1_prompt.txt` - Tier 1 prompt for the Dungeon Master Agent
+- `cma_tier2_prompt.txt` - Tier 2 prompt for the Character Management Agent
+
+For more details on agent prompts, see the [Prompt README](App/prompts/README.md).
 
 ## License
 

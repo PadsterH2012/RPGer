@@ -76,9 +76,25 @@ class OpenRouterAgentManager:
     def _load_agents(self) -> Dict[str, Dict[str, str]]:
         """Load agent prompts from files with tier-specific variants"""
         agents = {}
-        prompt_dir = "prompts"
+        prompt_dir = os.path.join("App", "prompts")
+        logger.info(f"DMA: Loading prompts from {prompt_dir}")
 
-        for filename in os.listdir(prompt_dir):
+        # Check if prompt directory exists
+        if not os.path.exists(prompt_dir):
+            error_msg = f"DMA: Prompt directory not found: {prompt_dir}"
+            logger.error(error_msg)
+            print(f"ERROR: {error_msg}")
+            return {}
+
+        try:
+            prompt_files = os.listdir(prompt_dir)
+        except Exception as e:
+            error_msg = f"DMA: Error accessing prompt directory: {str(e)}"
+            logger.error(error_msg)
+            print(f"ERROR: {error_msg}")
+            return {}
+
+        for filename in prompt_files:
             if not filename.endswith("_prompt.txt"):
                 continue
 
@@ -91,8 +107,14 @@ class OpenRouterAgentManager:
                 if agent_type not in agents:
                     agents[agent_type] = {}
 
-                with open(os.path.join(prompt_dir, filename), 'r') as f:
-                    agents[agent_type][tier] = f.read()
+                try:
+                    with open(os.path.join(prompt_dir, filename), 'r') as f:
+                        agents[agent_type][tier] = f.read()
+                        logger.info(f"DMA: Loaded prompt for {agent_type} tier {tier}")
+                except Exception as e:
+                    error_msg = f"DMA: Error reading prompt file {filename}: {str(e)}"
+                    logger.error(error_msg)
+                    print(f"ERROR: {error_msg}")
             elif len(parts) == 2:
                 # Legacy format without tier: agent_prompt.txt
                 agent_type = parts[0].upper()
@@ -100,11 +122,22 @@ class OpenRouterAgentManager:
                 if agent_type not in agents:
                     agents[agent_type] = {}
 
-                with open(os.path.join(prompt_dir, filename), 'r') as f:
-                    # Use the same prompt for all tiers as fallback
-                    prompt = f.read()
-                    for tier in self.model_tiers:
-                        agents[agent_type][tier] = prompt
+                try:
+                    with open(os.path.join(prompt_dir, filename), 'r') as f:
+                        # Use the same prompt for all tiers as fallback
+                        prompt = f.read()
+                        for tier in self.model_tiers:
+                            agents[agent_type][tier] = prompt
+                        logger.info(f"DMA: Loaded legacy prompt for {agent_type} (all tiers)")
+                except Exception as e:
+                    error_msg = f"DMA: Error reading legacy prompt file {filename}: {str(e)}"
+                    logger.error(error_msg)
+                    print(f"ERROR: {error_msg}")
+
+        # Log summary of loaded agents
+        agent_summary = ", ".join([f"{agent}({len(tiers)} tiers)" for agent, tiers in agents.items()])
+        logger.info(f"DMA: Loaded prompts for {len(agents)} agents: {agent_summary}")
+        print(f"DMA: Loaded prompts for {len(agents)} agents: {agent_summary}")
 
         return agents
 
