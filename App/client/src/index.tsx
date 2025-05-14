@@ -9,6 +9,10 @@ import './styles/global.css';
 import reportWebVitals from './reportWebVitals';
 
 // Import widgets to register them
+import './components/widgets/StatsWidget';
+import './components/widgets/NotesWidget';
+import './components/widgets/DiceRollerWidget';
+import './components/widgets/CharacterSheetWidget';
 import './components/widgets/TextWidget';
 import './components/widgets/TableWidget';
 import './components/widgets/ClockWidget';

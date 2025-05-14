@@ -127,7 +127,7 @@ const NewDashboard: React.FC = () => {
       {/* Settings button */}
       <button className="floating-settings-button" onClick={toggleSettings}>
         <span className="settings-icon">⚙</span>
-        <div className={`connection-indicator ${isConnected ? 'connected' : 'disconnected'}`} />
+        <div className={`connection-indicator ${isConnected ? 'connected' : 'disconnected'}`} data-connected={isConnected.toString()} />
       </button>
 
       {/* Settings panel */}

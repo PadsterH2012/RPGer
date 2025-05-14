@@ -16,20 +16,23 @@ import { userSessions } from './index';
  * @param socket Socket connection
  */
 export const setupWidgetHandlers = (io: Server, socket: Socket): void => {
-  // Get user ID from session
-  const getUserId = (): string | undefined => {
-    return userSessions.get(socket.id);
+  // Get user ID from session or use default for development
+  const getUserId = (): string => {
+    const userId = userSessions.get(socket.id);
+    if (!userId) {
+      // For development/testing, create a default user ID if not authenticated
+      const defaultUserId = 'default-user-id';
+      userSessions.set(socket.id, defaultUserId);
+      logger.info(`Using default user ID for unauthenticated client: ${defaultUserId}`);
+      return defaultUserId;
+    }
+    return userId;
   };
 
   // Handle widget sync
   socket.on('widgets:sync', async (data: { activeWidgets: string[]; configs: Record<string, any> }) => {
     try {
       const userId = getUserId();
-
-      if (!userId) {
-        logger.debug(`User not authenticated, skipping widget sync`);
-        return;
-      }
 
       logger.debug(`User ${userId} synced widget state: ${JSON.stringify(data)}`);
 
@@ -73,11 +76,6 @@ export const setupWidgetHandlers = (io: Server, socket: Socket): void => {
   socket.on('widgets:add', async (data: { widgetId: string; config?: any }) => {
     try {
       const userId = getUserId();
-
-      if (!userId) {
-        logger.debug(`User not authenticated, skipping widget add`);
-        return;
-      }
 
       logger.debug(`User ${userId} added widget: ${data.widgetId}`);
 
@@ -136,11 +134,6 @@ export const setupWidgetHandlers = (io: Server, socket: Socket): void => {
     try {
       const userId = getUserId();
 
-      if (!userId) {
-        logger.debug(`User not authenticated, skipping widget remove`);
-        return;
-      }
-
       logger.debug(`User ${userId} removed widget: ${data.widgetId}`);
 
       // Update widget in database
@@ -189,11 +182,6 @@ export const setupWidgetHandlers = (io: Server, socket: Socket): void => {
   socket.on('widgets:updateConfig', async (data: { widgetId: string; config: any }) => {
     try {
       const userId = getUserId();
-
-      if (!userId) {
-        logger.debug(`User not authenticated, skipping widget config update`);
-        return;
-      }
 
       logger.debug(`User ${userId} updated widget config: ${data.widgetId}`);
 
@@ -260,55 +248,50 @@ export const setupWidgetHandlers = (io: Server, socket: Socket): void => {
     try {
       const userId = getUserId();
 
-      logger.debug(`User ${userId || socket.id} requested data for widget: ${data.widgetId}`);
+      logger.debug(`User ${userId} requested data for widget: ${data.widgetId}`);
 
       // Generate data based on data source
       let responseData: any[] = [];
 
-      if (userId) {
-        // User is authenticated, try to get real data
-        switch (data.dataSource) {
-          case 'characters':
-            // Get characters from database
-            const characters = await mongoose.model('Character').find({
-              userId: new mongoose.Types.ObjectId(userId),
-            }).select('name race class level').limit(10);
+      // Try to get real data
+      switch (data.dataSource) {
+        case 'characters':
+          // Get characters from database
+          const characters = await mongoose.model('Character').find({
+            userId: new mongoose.Types.ObjectId(userId),
+          }).select('name race class level').limit(10);
 
-            if (characters.length > 0) {
-              responseData = characters.map((char, index) => ({
-                id: char._id,
-                name: char.name,
-                class: char.class,
-                level: char.level,
-              }));
-              break;
-            }
-            // Fall through to default if no characters found
+          if (characters.length > 0) {
+            responseData = characters.map((char, index) => ({
+              id: char._id,
+              name: char.name,
+              class: char.class,
+              level: char.level,
+            }));
+            break;
+          }
+          // Fall through to default if no characters found
 
-          case 'inventory':
-            // Get character equipment from database
-            const character = await mongoose.model('Character').findOne({
-              userId: new mongoose.Types.ObjectId(userId),
-            }).select('equipment');
+        case 'inventory':
+          // Get character equipment from database
+          const character = await mongoose.model('Character').findOne({
+            userId: new mongoose.Types.ObjectId(userId),
+          }).select('equipment');
 
-            if (character && character.equipment && character.equipment.length > 0) {
-              responseData = character.equipment.map((item, index) => ({
-                id: index + 1,
-                name: item.name,
-                quantity: item.quantity || 1,
-                value: 0, // Value not stored in database
-              }));
-              break;
-            }
-            // Fall through to default if no inventory found
+          if (character && character.equipment && character.equipment.length > 0) {
+            responseData = character.equipment.map((item, index) => ({
+              id: index + 1,
+              name: item.name,
+              quantity: item.quantity || 1,
+              value: 0, // Value not stored in database
+            }));
+            break;
+          }
+          // Fall through to default if no inventory found
 
-          default:
-            // Use sample data for now
-            responseData = getSampleData(data.dataSource);
-        }
-      } else {
-        // User is not authenticated, use sample data
-        responseData = getSampleData(data.dataSource);
+        default:
+          // Use sample data for now
+          responseData = getSampleData(data.dataSource);
       }
 
       // Send data to the client
@@ -332,11 +315,6 @@ export const setupWidgetHandlers = (io: Server, socket: Socket): void => {
     try {
       const userId = getUserId();
 
-      if (!userId) {
-        logger.debug(`User not authenticated, skipping widget event`);
-        return;
-      }
-
       logger.debug(`User ${userId} sent event for widget: ${data.widgetId}, type: ${data.eventType}`);
 
       // Broadcast event to other clients of the same user
@@ -354,11 +332,6 @@ export const setupWidgetHandlers = (io: Server, socket: Socket): void => {
   socket.on('widget:init', async (data: { widgetId: string }) => {
     try {
       const userId = getUserId();
-
-      if (!userId) {
-        logger.debug(`User not authenticated, skipping widget init`);
-        return;
-      }
 
       logger.debug(`User ${userId} initialized widget: ${data.widgetId}`);
 
@@ -401,11 +374,6 @@ export const setupWidgetHandlers = (io: Server, socket: Socket): void => {
   socket.on('dice:roll', (roll: any) => {
     try {
       const userId = getUserId();
-
-      if (!userId) {
-        logger.debug(`User not authenticated, skipping dice roll broadcast`);
-        return;
-      }
 
       logger.debug(`User ${userId} rolled dice: ${JSON.stringify(roll)}`);
 

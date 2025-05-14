@@ -170,8 +170,24 @@ const WidgetContent = styled.div`
   overflow: auto;
 `;
 
+// Define layout item type
+interface LayoutItem {
+  i: string;
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+  minW?: number;
+  minH?: number;
+}
+
+// Define layouts type
+interface Layouts {
+  [breakpoint: string]: LayoutItem[];
+}
+
 // Define the initial layout
-const initialLayouts = {
+const initialLayouts: Layouts = {
   lg: [
     { i: 'stats', x: 0, y: 0, w: 6, h: 2, minW: 3, minH: 2 },
     { i: 'notes', x: 6, y: 0, w: 6, h: 2, minW: 3, minH: 2 },
@@ -220,7 +236,7 @@ const Dashboard: React.FC = () => {
   const { theme } = useTheme();
   const { socket, isConnected } = useSocket();
   const { widgets, activeWidgets, addWidget, removeWidget } = useWidgets();
-  const [layouts, setLayouts] = useState(initialLayouts);
+  const [layouts, setLayouts] = useState<Layouts>(initialLayouts);
   const [currentBreakpoint, setCurrentBreakpoint] = useState('lg');
   const [isAddingWidget, setIsAddingWidget] = useState(false);
 
@@ -237,13 +253,13 @@ const Dashboard: React.FC = () => {
   }, []);
 
   // Save layout changes to localStorage and emit to server
-  const handleLayoutChange = (layout: any, layouts: any) => {
-    setLayouts(layouts);
-    localStorage.setItem('dashboardLayouts', JSON.stringify(layouts));
+  const handleLayoutChange = (layout: LayoutItem[], allLayouts: Layouts) => {
+    setLayouts(allLayouts);
+    localStorage.setItem('dashboardLayouts', JSON.stringify(allLayouts));
 
     // Emit layout change to server if connected
     if (socket && isConnected) {
-      socket.emit('dashboard:layoutChange', layouts);
+      socket.emit('dashboard:layoutChange', allLayouts);
     }
   };
 
@@ -291,7 +307,7 @@ const Dashboard: React.FC = () => {
       const { defaultSize, minW, minH } = widgetMetadata;
 
       // Create new layout item
-      const newLayoutItem = {
+      const newLayoutItem: LayoutItem = {
         i: widgetId,
         x: 0,
         y: 0,
@@ -302,9 +318,9 @@ const Dashboard: React.FC = () => {
       };
 
       // Add to layouts for all breakpoints
-      const updatedLayouts = { ...layouts };
+      const updatedLayouts: Layouts = { ...layouts };
 
-      Object.keys(updatedLayouts).forEach(breakpoint => {
+      Object.keys(updatedLayouts).forEach((breakpoint: string) => {
         updatedLayouts[breakpoint] = [
           ...updatedLayouts[breakpoint],
           { ...newLayoutItem }
@@ -332,11 +348,11 @@ const Dashboard: React.FC = () => {
     removeWidget(widgetId);
 
     // Remove widget from layouts
-    const updatedLayouts = { ...layouts };
+    const updatedLayouts: Layouts = { ...layouts };
 
-    Object.keys(updatedLayouts).forEach(breakpoint => {
+    Object.keys(updatedLayouts).forEach((breakpoint: string) => {
       updatedLayouts[breakpoint] = updatedLayouts[breakpoint].filter(
-        item => item.i !== widgetId
+        (item: LayoutItem) => item.i !== widgetId
       );
     });
 

@@ -1,6 +1,6 @@
 /**
  * BaseWidget Component
- * 
+ *
  * Base component for all widgets to extend.
  */
 
@@ -52,6 +52,7 @@ export interface BaseWidgetProps extends WidgetProps {
   onDestroy?: () => void | Promise<void>;
   onConfigChange?: (config: WidgetConfig) => void | Promise<void>;
   onDataUpdate?: (data: any) => void | Promise<void>;
+  children?: React.ReactNode;
 }
 
 const BaseWidget: React.FC<BaseWidgetProps> = ({
@@ -86,21 +87,21 @@ const BaseWidget: React.FC<BaseWidgetProps> = ({
       if (onConfigChange) {
         onConfigChange(newConfig);
       }
-      
+
       if (propOnConfigChange) {
         propOnConfigChange(newConfig);
       }
     },
     onDataUpdate
   });
-  
+
   // Sync with prop config if provided
   useEffect(() => {
     if (propConfig && JSON.stringify(propConfig) !== JSON.stringify(config)) {
       updateConfig(propConfig);
     }
   }, [propConfig]);
-  
+
   return (
     <WidgetWrapper className={className} style={style}>
       <WidgetContent>
@@ -114,7 +115,7 @@ const BaseWidget: React.FC<BaseWidgetProps> = ({
           children
         )}
       </WidgetContent>
-      
+
       {isLoading && (
         <LoadingOverlay>
           <div>Loading...</div>

@@ -19,10 +19,11 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
   const [isConnected, setIsConnected] = useState<boolean>(false);
 
   const connect = () => {
-    // Use environment variable for the server URL
-    const serverUrl = process.env.REACT_APP_SOCKET_URL || 'http://localhost:5000';
+    // Use environment variable for the server URL or default to the current server
+    const serverUrl = process.env.REACT_APP_SOCKET_URL || 'http://localhost:5002';
+    console.log('Connecting to socket server at:', serverUrl);
     const newSocket = io(serverUrl, {
-      transports: ['websocket'],
+      transports: ['websocket', 'polling'],
       autoConnect: true,
       reconnection: true,
       reconnectionAttempts: 5,

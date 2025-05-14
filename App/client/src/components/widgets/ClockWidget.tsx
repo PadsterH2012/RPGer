@@ -1,6 +1,6 @@
 /**
  * ClockWidget Component
- * 
+ *
  * Widget for displaying current time and date.
  */
 
@@ -58,42 +58,42 @@ const defaultConfig: ClockWidgetConfig = {
 const ClockWidget: React.FC<WidgetProps> = ({ config }) => {
   const { theme } = useTheme();
   const widgetConfig = { ...defaultConfig, ...config } as ClockWidgetConfig;
-  
+
   const [time, setTime] = useState<Date>(new Date());
   const [blinkState, setBlinkState] = useState<boolean>(true);
-  
+
   // Update time every second
   useEffect(() => {
     const timer = setInterval(() => {
       setTime(new Date());
-      
+
       if (widgetConfig.blinkingSeparator) {
         setBlinkState(prev => !prev);
       }
     }, 1000);
-    
+
     return () => {
       clearInterval(timer);
     };
   }, [widgetConfig.blinkingSeparator]);
-  
+
   // Format time based on configuration
-  const formatTime = (date: Date): string => {
+  const formatTime = (date: Date): React.ReactNode => {
     let hours = date.getHours();
     const minutes = date.getMinutes().toString().padStart(2, '0');
     const seconds = date.getSeconds().toString().padStart(2, '0');
     let period = '';
-    
+
     if (widgetConfig.format === '12h') {
       period = hours >= 12 ? ' PM' : ' AM';
       hours = hours % 12;
       hours = hours ? hours : 12; // Convert 0 to 12 for 12 AM
     }
-    
-    const separator = widgetConfig.blinkingSeparator 
+
+    const separator = widgetConfig.blinkingSeparator
       ? <SecondsDot blinking={!blinkState} theme={theme}>:</SecondsDot>
       : ':';
-    
+
     return (
       <>
         {hours.toString().padStart(2, '0')}{separator}{minutes}
@@ -102,25 +102,25 @@ const ClockWidget: React.FC<WidgetProps> = ({ config }) => {
       </>
     );
   };
-  
+
   // Format date
   const formatDate = (date: Date): string => {
-    const options: Intl.DateTimeFormatOptions = { 
-      weekday: 'long', 
-      year: 'numeric', 
-      month: 'long', 
-      day: 'numeric' 
+    const options: Intl.DateTimeFormatOptions = {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
     };
-    
+
     return date.toLocaleDateString(undefined, options);
   };
-  
+
   return (
     <ClockContainer>
       <TimeDisplay size={widgetConfig.timeSize}>
         {formatTime(time)}
       </TimeDisplay>
-      
+
       {widgetConfig.showDate && (
         <DateDisplay size={widgetConfig.dateSize} theme={theme}>
           {formatDate(time)}

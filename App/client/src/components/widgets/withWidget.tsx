@@ -1,6 +1,6 @@
 /**
  * withWidget Higher-Order Component
- * 
+ *
  * HOC for creating widget components with standard functionality.
  */
 
@@ -20,7 +20,7 @@ interface WithWidgetOptions {
 
 /**
  * Higher-order component for creating widgets
- * 
+ *
  * @param WrappedComponent Component to wrap
  * @param options Widget options
  * @returns Widget component
@@ -31,7 +31,7 @@ export const withWidget = <P extends WidgetProps>(
 ) => {
   // Generate widget ID if not provided
   const widgetId = options.metadata.id || `widget-${options.metadata.name.toLowerCase().replace(/\s+/g, '-')}`;
-  
+
   // Create metadata
   const metadata: WidgetMetadata = {
     id: widgetId,
@@ -47,12 +47,11 @@ export const withWidget = <P extends WidgetProps>(
     maxW: options.metadata.maxW,
     maxH: options.metadata.maxH,
   };
-  
+
   // Create widget component
   const WidgetComponent: React.FC<P> = (props) => {
     return (
       <BaseWidget
-        id={widgetId}
         defaultConfig={options.defaultConfig}
         {...props}
       >
@@ -60,16 +59,16 @@ export const withWidget = <P extends WidgetProps>(
       </BaseWidget>
     );
   };
-  
+
   // Set display name
   WidgetComponent.displayName = `Widget(${WrappedComponent.displayName || WrappedComponent.name || 'Component'})`;
-  
+
   // Register widget
   widgetRegistry.registerWidget({
     metadata,
     component: WidgetComponent as any,
   });
-  
+
   return WidgetComponent;
 };
 

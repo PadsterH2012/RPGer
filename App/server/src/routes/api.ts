@@ -10,8 +10,12 @@ import { Dashboard } from '../models/Dashboard';
 import { Widget } from '../models/Widget';
 import { getRedisClient } from '../config/redis';
 import { logger } from '../utils/logger';
+import statusRoutes from './api/status';
 
 const router = express.Router();
+
+// Register status routes
+router.use('/status', statusRoutes);
 
 /**
  * Health check endpoint
