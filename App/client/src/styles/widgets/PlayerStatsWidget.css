@@ -1,0 +1,279 @@
+.player-stats-widget {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.tabs {
+  display: flex;
+  border-bottom: 1px solid #ddd;
+  margin-bottom: 15px;
+}
+
+.tab {
+  padding: 8px 16px;
+  background: none;
+  border: none;
+  border-bottom: 3px solid transparent;
+  cursor: pointer;
+  font-weight: 500;
+  color: #666;
+  transition: all 0.3s ease;
+}
+
+.tab:hover {
+  color: #6200ee;
+}
+
+.tab.active {
+  color: #6200ee;
+  border-bottom-color: #6200ee;
+}
+
+.tab-content {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.loading-text {
+  color: #757575;
+  font-style: italic;
+  text-align: center;
+  margin-top: 20px;
+}
+
+/* Stats Tab */
+.stats-container {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.character-header {
+  margin-bottom: 15px;
+}
+
+.character-name {
+  margin: 0 0 5px 0;
+  font-size: 18px;
+  color: #6200ee;
+}
+
+.character-details {
+  display: flex;
+  justify-content: space-between;
+  font-size: 14px;
+}
+
+.character-race-class {
+  color: #555;
+}
+
+.character-level {
+  color: #6200ee;
+  font-weight: 500;
+}
+
+.stat-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid #eee;
+}
+
+.stat-label {
+  font-weight: 500;
+  color: #555;
+}
+
+.stat-value {
+  font-weight: 600;
+  color: #333;
+}
+
+.hp-row, .xp-row {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.hp-bar-container, .xp-bar-container {
+  position: relative;
+  height: 20px;
+  background-color: #f5f5f5;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.hp-bar, .xp-bar {
+  height: 100%;
+  border-radius: 10px;
+  transition: width 0.3s ease;
+}
+
+.hp-bar {
+  background-color: #4caf50;
+}
+
+.xp-bar {
+  background-color: #6200ee;
+}
+
+.hp-text, .xp-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: white;
+  font-weight: 500;
+  font-size: 12px;
+  text-shadow: 0 0 2px rgba(0, 0, 0, 0.5);
+}
+
+.abilities-container h4 {
+  margin: 15px 0 10px;
+  color: #555;
+  font-size: 16px;
+}
+
+.abilities-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.ability {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: #f5f5f5;
+  padding: 10px;
+  border-radius: 5px;
+}
+
+.ability-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: #555;
+}
+
+.ability-value {
+  font-size: 18px;
+  font-weight: 600;
+  color: #333;
+}
+
+.ability-modifier {
+  font-size: 14px;
+  color: #6200ee;
+  font-weight: 500;
+}
+
+/* Inventory Tab */
+.inventory-container {
+  padding: 10px 0;
+}
+
+.inventory-container h4 {
+  margin: 0 0 15px 0;
+  color: #555;
+  font-size: 16px;
+}
+
+.equipment-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.equipment-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px;
+  border-bottom: 1px solid #eee;
+  align-items: center;
+}
+
+.item-name {
+  font-weight: 500;
+  color: #333;
+  flex: 1;
+}
+
+.item-type {
+  color: #6200ee;
+  font-size: 12px;
+  padding: 2px 8px;
+  background-color: #f3e5f5;
+  border-radius: 10px;
+  margin: 0 10px;
+}
+
+.item-details {
+  color: #757575;
+  font-size: 12px;
+  flex: 1;
+  text-align: right;
+}
+
+.empty-list {
+  color: #757575;
+  font-style: italic;
+  text-align: center;
+  margin-top: 20px;
+}
+
+/* Abilities Tab */
+.abilities-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.ability-item {
+  padding: 10px;
+  border-bottom: 1px solid #eee;
+}
+
+.ability-name {
+  display: block;
+  font-weight: 500;
+  color: #6200ee;
+  margin-bottom: 5px;
+}
+
+.ability-description {
+  margin: 0;
+  color: #555;
+  font-size: 14px;
+}
+
+.thief-abilities h5 {
+  margin: 10px 0;
+  color: #6200ee;
+}
+
+.thief-skills {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+.thief-skill {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px;
+  background-color: #f5f5f5;
+  border-radius: 5px;
+}
+
+.skill-name {
+  font-weight: 500;
+  color: #555;
+}
+
+.skill-value {
+  font-weight: 600;
+  color: #6200ee;
+}
