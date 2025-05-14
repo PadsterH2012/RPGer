@@ -8,6 +8,38 @@ yarn-error.log*
 .node_repl_history
 *.tgz
 .yarn-integrity
+.cache/
+*/.cache/
+*/*/.cache/
+*/*/*/.cache/
+*/*/*/*/.cache/
+node_modules/.cache/
+*/node_modules/.cache/
+*/*/node_modules/.cache/
+*/*/*/node_modules/.cache/
+*/*/*/*/node_modules/.cache/
+*.pack
+*.pack.old
+.eslintcache
+tsconfig.tsbuildinfo
+**/node_modules/.cache/**
+**/node_modules/.cache/.eslintcache
+**/node_modules/.cache/default-development/*.pack
+**/node_modules/.cache/default-development/index.pack
+**/node_modules/.cache/default-development/index.pack.old
+**/node_modules/.cache/tsconfig.tsbuildinfo
+
+# Ignore all node_modules directories
+**/node_modules/
+**/bower_components/
+
+# Ignore all cache files
+**/.cache/
+**/.npm/
+**/.eslintcache
+**/.stylelintcache
+**/.yarn/
+**/.pnp.*
 
 # Build outputs
 dist/
@@ -41,6 +73,10 @@ data/db/
 
 # Python
 __pycache__/
+*/__pycache__/
+*/*/__pycache__/
+*/*/*/__pycache__/
+*/*/*/*/__pycache__/
 *.py[cod]
 *$py.class
 *.so
@@ -48,6 +84,12 @@ __pycache__/
 env/
 venv/
 ENV/
+App/backend/venv/
+*/*/venv/
+*/*/*/venv/
+*/*/*/*/venv/
+*/*/*/*/*/venv/
+*/*/*/*/*/*/venv/
 build/
 develop-eggs/
 downloads/
@@ -64,6 +106,37 @@ var/
 .pytest_cache/
 .coverage
 htmlcov/
+*.pyc
+
+# Python package files
+*.dist-info/
+*.dist-info/**
+site-packages/
+site-packages/**
+pyvenv.cfg
+**/venv/bin/**
+**/venv/lib/**
+**/venv/include/**
+**/venv/pyvenv.cfg
+**/__pycache__/**
+**/*.pyc
+**/*.pyo
+**/*.pyd
+**/.Python
+
+# Ignore all files in virtual environment
+App/backend/venv/
+**/venv/
+**/.venv/
+**/ENV/
+**/env/
+**/.env/
+
+# Ignore all Python cache files
+**/__pycache__/
+**/*.py[cod]
+**/*$py.class
+**/*.so
 
 # IDEs and editors
 .idea/
@@ -86,6 +159,10 @@ logs/
 # Docker
 docker-volumes/
 *.env.docker
+.docker/
+docker-data/
+app_mongodb_data/
+app_redis_data/
 
 # Dependency directories
 jspm_packages/
@@ -108,6 +185,54 @@ Thumbs.db
 .Trash-*
 .nfs*
 
+# AgentWorkspace temporary files
+AgentWorkspace/temp_*
+AgentWorkspace/*.tmp
+AgentWorkspace/temp/
+AgentWorkspace/prompts/fix_task.md
+
+# Specific project files
+App/backend/README_DASHBOARD_TEST.md
+App/backend/dashboard_test.py
+App/backend/test_client.py
+App/backend/run_dashboard_test.sh
+test_dm_widget.html
+App/backend/rpg_web_app.py
+App/backend/rpg_web_app_part2.py
+App/client/src/components/RPG_Dashboard.tsx
+App/client/src/components/widgets/ConnectionStatusWidget.tsx
+App/client/src/pages/RPG_Dashboard.tsx
+App/client/src/services/api.ts
+App/client/src/styles/RPG_Dashboard.css
+App/client/src/styles/widgets/ConnectionStatusWidget.css
+App/server/src/routes/api/
+start-rpg-web-app.sh
+
+# Deleted shell scripts
+App/start-in-memory.sh
+App/start-rpger.sh
+App/start-with-db.sh
+
+# Modified source files
+App/client/src/App.tsx
+App/client/src/components/Header.tsx
+App/client/src/components/NewDashboard.tsx
+App/client/src/components/SettingsPanel.tsx
+App/client/src/components/Sidebar.tsx
+App/client/src/components/widgets/AgentDebugWidget.tsx
+App/client/src/components/widgets/BaseWidget.tsx
+App/client/src/components/widgets/ClockWidget.tsx
+App/client/src/components/widgets/DungeonMasterWidget.tsx
+App/client/src/components/widgets/withWidget.tsx
+App/client/src/context/SocketContext.tsx
+App/client/src/index.tsx
+App/client/src/pages/Dashboard.tsx
+App/client/src/styles/SettingsPanel.css
+App/client/src/styles/widgets/AgentDebugWidget.css
+App/server/src/routes/api.ts
+App/server/src/socket/index.ts
+App/server/src/socket/widgetHandlers.ts
+
 # React / Create React App specific
 .DS_*
 **/*.backup.*
@@ -117,3 +242,8 @@ Thumbs.db
 dump.rdb
 *.rdb
 redis_data/
+
+# Package lock files (optional, uncomment if you want to ignore them)
+# package-lock.json
+# */package-lock.json
+# */*/package-lock.json
