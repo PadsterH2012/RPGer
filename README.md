@@ -1,6 +1,6 @@
 # RPGer
 
-A modern React-based dashboard for RPG game management.
+A modern React-based dashboard for RPG game management with AI-powered Dungeon Master capabilities.
 
 ## Project Structure
 
@@ -8,12 +8,14 @@ A modern React-based dashboard for RPG game management.
 - `server/`: Node.js/Express backend server
 - `shared/`: Shared code between client and server
 - `backend/`: Python-based backend (alternative to Node.js server)
+- `prompts/`: Prompt files for AI agents
 
 ## Prerequisites
 
 - Node.js (v18+)
 - npm or yarn
 - Docker and Docker Compose (for containerized database and Redis)
+- OpenRouter API key (for AI capabilities)
 
 ## Getting Started
 
@@ -103,6 +105,28 @@ When running with containers, you can access:
 
 - MongoDB admin interface: http://localhost:8081
 - Redis admin interface: http://localhost:8082
+
+## OpenRouter Integration
+
+RPGer uses OpenRouter to connect to various AI models for the Dungeon Master Agent (DMA) and other AI agents. To use this feature:
+
+1. Sign up for an account at [OpenRouter](https://openrouter.ai/)
+2. Get your API key from the OpenRouter dashboard
+3. Create a `.env` file in the `App/backend/` directory with the following content:
+   ```
+   OPENROUTER_API_KEY=your_api_key_here
+   ```
+4. Replace `your_api_key_here` with your actual OpenRouter API key
+
+### Available Models
+
+RPGer uses a tiered approach to AI models:
+
+- **Tier 1** (Default): `mistralai/mistral-7b-instruct` - Fast and cost-effective
+- **Tier 2**: `anthropic/claude-instant-1.2` - Better quality, slightly higher cost
+- **Tier 3**: `anthropic/claude-3-haiku-20240307` - Highest quality, highest cost
+
+For more details on the OpenRouter integration, see [OpenRouter Integration](Docs/Backend/Integration/OpenRouterIntegration.md).
 
 ## License
 

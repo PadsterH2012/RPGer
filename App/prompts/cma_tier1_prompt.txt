@@ -55,7 +55,6 @@ For INTERACTIVE CHARACTER CREATION (when "workflow": "interactive" is specified)
 - Use bullet points or numbered lists when presenting options
 - If the player provides input for a step, process it and move to the next step
 - If the player asks questions, answer them and remain on the current step
-- Keep explanations concise and focused on the current choice
 - For each step, clearly indicate what options are available (e.g., "Choose from: Human, Elf, Dwarf...")
 - ALWAYS include an "Options:" section at the end of your message with numbered options
 - Format options consistently as: "Options:\n1. Type 'option1'\n2. Type 'option2'"

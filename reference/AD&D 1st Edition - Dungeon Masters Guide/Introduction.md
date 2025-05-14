@@ -1,0 +1,17 @@
+# Introduction
+
+*Extracted from the AD&D 1st Edition Dungeon Master's Guide*
+
+You, the Dungeon Master (DM), are about to embark on a new world filled with excitement, wonder, and challenge. The AD&D™ rules are designed to be comprehensive. The game system is based on a set of known factors, interpreted and applied by the DM. As the most important character in the AD&D game, the DM is expected to be the final arbiter, a person capable of creating and presenting a world in which the players can interact, a person who is fair and consistent in adjudication, and a person who is imaginative and creative.
+
+The AD&D system is more than a mere game. It is a complex game system designed to allow players to develop unique characters, detailed worlds, and challenging adventures. The DM is the keystone of the system, the person who brings all of the diverse parts together, the person who gives life and breath to the game.
+
+The DM breathes life into the AD&D game. The DM creates the world in which the game takes place, and he or she is responsible for the non-player characters (NPCs) the player characters (PCs) meet, the situations they encounter, and the adventures they embark upon. The DM is responsible for knowing the rules of the game and for determining the outcome of specific actions during the course of play. The DM is expected to be fair, to know the rules, to be consistent in the application of those rules, and to be creative and imaginative in the development of situations for the players to encounter.
+
+The DM is a combination of storyteller, actor, referee, and scenario creator. The DM must be able to create and present a world in which the players can interact, a world which is believable and which operates according to certain rules of logic and reason. The DM must be able to role-play the various NPCs the players encounter, giving each a distinct personality and purpose. The DM must be able to interpret the rules fairly and consistently, making judgments based on reason and logic when the rules do not specifically cover a situation. And the DM must be able to create scenarios and adventures for the players to experience, situations which challenge the players and their characters.
+
+The DM is the most important person in the AD&D game. Without the DM, there is no game. The DM is the person who makes the game come alive, who gives it meaning and purpose, who makes it more than a mere board game or exercise in mathematics. The DM is the person who creates the world in which the game takes place, and who determines the outcome of the players' actions within that world.
+
+This volume is designed to aid the DM in the creation and operation of a campaign and the adjudication of the rules. It is the DM's book, and while players may find material of interest herein, it is specifically directed to the DM. The book contains information on creating and maintaining a campaign, on adjudicating play, and on handling various specific situations which may arise during the course of play.
+
+The DM is encouraged to read this volume thoroughly and to refer to it during play as necessary. The DM is also encouraged to make notes, to develop house rules, and to create a campaign which is uniquely his or her own. The AD&D system is designed to be flexible, to allow for individual interpretation and development. No two campaigns will ever be the same, and no two DMs will ever run a game in exactly the same way. This is as it should be, for the game is designed to allow for individual creativity and interpretation.

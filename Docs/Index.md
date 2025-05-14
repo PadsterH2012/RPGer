@@ -21,6 +21,7 @@ Documentation is organized in a hierarchical structure by system component.
 ### Integration
 - [Backend-Frontend Integration](Backend/Integration/BackendFrontendIntegration.md) - Integration between Python backend and React frontend
 - [DM Widget Integration](DM_Widget_Integration.md) - How DM messages flow from backend to frontend
+- [OpenRouter Integration](Backend/Integration/OpenRouterIntegration.md) - Integration with OpenRouter API for AI capabilities
 
 ### Debugging
 - [Debug Message System](Backend/DebugMessageSystem.md) - System for capturing, processing, and transmitting debug messages

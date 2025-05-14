@@ -14,43 +14,47 @@ logger = logging.getLogger('RPGWebApp')
 
 # Try to import the game engine
 try:
-    from main import SimpleADDTest
-    logger.info("Successfully imported SimpleADDTest from main")
+    from simple_add_test import SimpleADDTest
+    logger.info("Successfully imported SimpleADDTest from simple_add_test")
 except ImportError:
-    logger.warning("Could not import SimpleADDTest from main. Using mock implementation.")
-    # Mock implementation for testing
-    class SimpleADDTest:
-        def __init__(self, mode="standard"):
-            self.mode = mode
-            logger.info(f"Created mock SimpleADDTest with mode: {mode}")
+    try:
+        from main import SimpleADDTest
+        logger.info("Successfully imported SimpleADDTest from main")
+    except ImportError:
+        logger.warning("Could not import SimpleADDTest from simple_add_test or main. Using mock implementation.")
+        # Mock implementation for testing
+        class SimpleADDTest:
+            def __init__(self, mode="standard"):
+                self.mode = mode
+                logger.info(f"Created mock SimpleADDTest with mode: {mode}")
 
-        def get_simplified_context(self):
-            return {
-                "player": {
-                    "name": "Test Character",
-                    "race": "Human",
-                    "class": "Fighter",
-                    "level": 1,
-                    "hp": 10,
-                    "max_hp": 10,
-                    "stats": {"STR": 16, "DEX": 14, "CON": 15, "INT": 12, "WIS": 10, "CHA": 8}
-                },
-                "environment": {
-                    "location": "Test Dungeon",
-                    "description": "A dark, damp dungeon with stone walls.",
-                    "creatures": []
-                },
-                "world": {
-                    "time": {"day": 1, "hour": 12},
-                    "weather": {"condition": "Clear"},
-                    "light": {"level": "Dim"}
-                },
-                "exploration": {}
-            }
+            def get_simplified_context(self):
+                return {
+                    "player": {
+                        "name": "Test Character",
+                        "race": "Human",
+                        "class": "Fighter",
+                        "level": 1,
+                        "hp": 10,
+                        "max_hp": 10,
+                        "stats": {"STR": 16, "DEX": 14, "CON": 15, "INT": 12, "WIS": 10, "CHA": 8}
+                    },
+                    "environment": {
+                        "location": "Test Dungeon",
+                        "description": "A dark, damp dungeon with stone walls.",
+                        "creatures": []
+                    },
+                    "world": {
+                        "time": {"day": 1, "hour": 12},
+                        "weather": {"condition": "Clear"},
+                        "light": {"level": "Dim"}
+                    },
+                    "exploration": {}
+                }
 
-        def process_player_input(self, input_text):
-            logger.info(f"Processing mock input: {input_text}")
-            return f"The DM acknowledges your command: {input_text}"
+            def process_player_input(self, input_text):
+                logger.info(f"Processing mock input: {input_text}")
+                return f"The DM acknowledges your command: {input_text}"
 
 # Initialize Flask app
 app = Flask(__name__)

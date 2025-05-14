@@ -5,12 +5,17 @@ This module initializes a Flask application with Flask-SocketIO integration
 for real-time bidirectional communication between the server and clients.
 CORS is enabled to allow connections from any origin, which is particularly
 useful for development and testing with file:// URLs.
+
+This module also exports the SimpleADDTest class for use by other modules.
 """
 
 from flask import Flask, request, jsonify
 from flask_socketio import SocketIO, emit
 from flask_cors import CORS
 import communication_manager
+
+# Import the SimpleADDTest class
+from simple_add_test import SimpleADDTest
 
 # Initialize Flask app and SocketIO
 app = Flask(__name__)

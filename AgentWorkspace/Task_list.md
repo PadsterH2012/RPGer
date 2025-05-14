@@ -5,7 +5,7 @@ example task
 
 ## High Priority
 
-[PENDING] - SNAG0000013 - Ensure the DM is able to make the connection to openrouter to process commands, add a message to the Agent Debug for DMA (Dungeon Master Agent). Possible openrouter API key was not copied from old code as it used to be in .env file. Maybe a better location should be investigated
+[COMPLETED] - SNAG0000013 - Ensure the DM is able to make the connection to openrouter to process commands, add a message to the Agent Debug for DMA (Dungeon Master Agent). Fixed issues with model selection and API key handling. Added detailed debug messages to help diagnose connection issues. Changed model tiers structure to use string model names directly. Added comprehensive documentation for OpenRouter integration.
 [PENDING] - SNAG0000007 - Connection status widget should show database stats
 
 ## Medium Priority
