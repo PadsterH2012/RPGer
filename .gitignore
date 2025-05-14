@@ -189,49 +189,53 @@ Thumbs.db
 AgentWorkspace/temp_*
 AgentWorkspace/*.tmp
 AgentWorkspace/temp/
+
+# Keep these specific files/directories
+!AgentWorkspace/SnagsRaised.md
+!AgentWorkspace/prompts/
+!AgentWorkspace/prompts/*.md
+!AgentWorkspace/prompts/**/*.md
+# Only ignore specific files in prompts directory
 AgentWorkspace/prompts/fix_task.md
 
-# Specific project files
+# Test files that can be ignored
 App/backend/README_DASHBOARD_TEST.md
 App/backend/dashboard_test.py
 App/backend/test_client.py
 App/backend/run_dashboard_test.sh
 test_dm_widget.html
-App/backend/rpg_web_app.py
-App/backend/rpg_web_app_part2.py
-App/client/src/components/RPG_Dashboard.tsx
-App/client/src/components/widgets/ConnectionStatusWidget.tsx
-App/client/src/pages/RPG_Dashboard.tsx
-App/client/src/services/api.ts
-App/client/src/styles/RPG_Dashboard.css
-App/client/src/styles/widgets/ConnectionStatusWidget.css
-App/server/src/routes/api/
-start-rpg-web-app.sh
 
-# Deleted shell scripts
-App/start-in-memory.sh
-App/start-rpger.sh
-App/start-with-db.sh
+# Make sure all source files are tracked
+!App/backend/rpg_web_app.py
+!App/backend/rpg_web_app_part2.py
+!App/client/src/components/RPG_Dashboard.tsx
+!App/client/src/components/widgets/ConnectionStatusWidget.tsx
+!App/client/src/pages/RPG_Dashboard.tsx
+!App/client/src/services/api.ts
+!App/client/src/styles/RPG_Dashboard.css
+!App/client/src/styles/widgets/ConnectionStatusWidget.css
+!App/server/src/routes/api/
+!start-rpg-web-app.sh
 
-# Modified source files
-App/client/src/App.tsx
-App/client/src/components/Header.tsx
-App/client/src/components/NewDashboard.tsx
-App/client/src/components/SettingsPanel.tsx
-App/client/src/components/Sidebar.tsx
-App/client/src/components/widgets/AgentDebugWidget.tsx
-App/client/src/components/widgets/BaseWidget.tsx
-App/client/src/components/widgets/ClockWidget.tsx
-App/client/src/components/widgets/DungeonMasterWidget.tsx
-App/client/src/components/widgets/withWidget.tsx
-App/client/src/context/SocketContext.tsx
-App/client/src/index.tsx
-App/client/src/pages/Dashboard.tsx
-App/client/src/styles/SettingsPanel.css
-App/client/src/styles/widgets/AgentDebugWidget.css
-App/server/src/routes/api.ts
-App/server/src/socket/index.ts
-App/server/src/socket/widgetHandlers.ts
+# Make sure all source files are tracked
+!App/client/src/App.tsx
+!App/client/src/components/Header.tsx
+!App/client/src/components/NewDashboard.tsx
+!App/client/src/components/SettingsPanel.tsx
+!App/client/src/components/Sidebar.tsx
+!App/client/src/components/widgets/AgentDebugWidget.tsx
+!App/client/src/components/widgets/BaseWidget.tsx
+!App/client/src/components/widgets/ClockWidget.tsx
+!App/client/src/components/widgets/DungeonMasterWidget.tsx
+!App/client/src/components/widgets/withWidget.tsx
+!App/client/src/context/SocketContext.tsx
+!App/client/src/index.tsx
+!App/client/src/pages/Dashboard.tsx
+!App/client/src/styles/SettingsPanel.css
+!App/client/src/styles/widgets/AgentDebugWidget.css
+!App/server/src/routes/api.ts
+!App/server/src/socket/index.ts
+!App/server/src/socket/widgetHandlers.ts
 
 # React / Create React App specific
 .DS_*
@@ -247,3 +251,19 @@ redis_data/
 # package-lock.json
 # */package-lock.json
 # */*/package-lock.json
+
+# Keep documentation and scripts
+!Docs/
+!Docs/**
+!Docs/Backend/
+!Docs/DM_Widget_Integration.md
+!Docs/Database/
+!Docs/Frontend/
+!Docs/Frontend/Components/
+!Docs/Frontend/Components/AgentDebugWidget.md
+!Docs/Frontend/Components/RPG_Dashboard.md
+!Docs/Frontend/Components/WidgetContext.md
+!Docs/Frontend/Socket.IO/
+!README.md
+!scripts/
+!scripts/**
