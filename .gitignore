@@ -1,0 +1,119 @@
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+.npm
+.node_repl_history
+*.tgz
+.yarn-integrity
+
+# Build outputs
+dist/
+build/
+out/
+.next/
+.nuxt/
+.cache/
+coverage/
+.nyc_output/
+*.lcov
+
+# TypeScript
+*.tsbuildinfo
+.tscache/
+
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env.development
+.env.test
+.env.production
+
+# MongoDB
+*.mongodb
+mongodb_data/
+data/db/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+build/
+develop-eggs/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
+.installed.cfg
+*.egg
+.pytest_cache/
+.coverage
+htmlcov/
+
+# IDEs and editors
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+.project
+.classpath
+.settings/
+*.sublime-workspace
+*.sublime-project
+.history/
+.ionide/
+
+# Logs
+logs/
+*.log
+
+# Docker
+docker-volumes/
+*.env.docker
+
+# Dependency directories
+jspm_packages/
+bower_components/
+
+# Optional eslint cache
+.eslintcache
+
+# Optional stylelint cache
+.stylelintcache
+
+# Misc
+.DS_Store
+Thumbs.db
+.directory
+*.bak
+*.tmp
+*~
+.fuse_hidden*
+.Trash-*
+.nfs*
+
+# React / Create React App specific
+.DS_*
+**/*.backup.*
+**/*.back.*
+
+# Redis
+dump.rdb
+*.rdb
+redis_data/
