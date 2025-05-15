@@ -1,0 +1,156 @@
+{
+  "total": 15,
+  "passed": 12,
+  "failed": 3,
+  "details": [
+    {
+      "test_case": "I feint with my dagger then thrust at the troll's exposed flank",
+      "response": " You feign a strike with your dagger, drawing the troll's attention, and then prepare to deliver a thrust at its vulnerable side. [ACTION:COMBAT|TARGET:troll|WEAPON:dagger|ATTACK_TYPE:feint_and_thrust]",
+      "validation": {
+        "valid": false,
+        "reason": "Narrative too long",
+        "response": " You feign a strike with your dagger, drawing the troll's attention, and then prepare to deliver a thrust at its vulnerable side. [ACTION:COMBAT|TARGET:troll|WEAPON:dagger|ATTACK_TYPE:feint_and_thrust]"
+      }
+    },
+    {
+      "test_case": "I parry the incoming blow and riposte with my rapier",
+      "response": " You prepare to parry the incoming blow and riposte with your rapier. [ACTION:COMBAT|TARGET:opponent|WEAPON:rapier|ACTION_TYPE:defense_and_attack]",
+      "validation": {
+        "valid": true,
+        "action_type": "COMBAT",
+        "response": " You prepare to parry the incoming blow and riposte with your rapier. [ACTION:COMBAT|TARGET:opponent|WEAPON:rapier|ACTION_TYPE:defense_and_attack]",
+        "player_visible": "You prepare to parry the incoming blow and riposte with your rapier."
+      }
+    },
+    {
+      "test_case": "I conjure an eldritch blast aimed at the necromancer's phylactery",
+      "response": " You focus on the arcane energies within you, preparing to unleash an eldritch blast. [ACTION:MAGIC|SPELL:Eldritch Blast|TARGET:necromancer's phylactery]",
+      "validation": {
+        "valid": true,
+        "action_type": "MAGIC",
+        "response": " You focus on the arcane energies within you, preparing to unleash an eldritch blast. [ACTION:MAGIC|SPELL:Eldritch Blast|TARGET:necromancer's phylactery]",
+        "player_visible": "You focus on the arcane energies within you, preparing to unleash an eldritch blast."
+      }
+    },
+    {
+      "test_case": "I scrutinize the arcane sigils etched into the obsidian altar",
+      "response": " You focus on the intricate arcane symbols etched into the obsidian altar. [ACTION:WORLD|OBJECT:obsidian altar|TASK:inspection|INTENT:sigils]",
+      "validation": {
+        "valid": true,
+        "action_type": "WORLD",
+        "response": " You focus on the intricate arcane symbols etched into the obsidian altar. [ACTION:WORLD|OBJECT:obsidian altar|TASK:inspection|INTENT:sigils]",
+        "player_visible": "You focus on the intricate arcane symbols etched into the obsidian altar."
+      }
+    },
+    {
+      "test_case": "I triangulate our position using the stars and my astrolabe",
+      "response": " You gaze skyward and ready your navigation tools. [ACTION:WORLD|OBJECT:astrolabe|TASK:navigation]",
+      "validation": {
+        "valid": true,
+        "action_type": "WORLD",
+        "response": " You gaze skyward and ready your navigation tools. [ACTION:WORLD|OBJECT:astrolabe|TASK:navigation]",
+        "player_visible": "You gaze skyward and ready your navigation tools."
+      }
+    },
+    {
+      "test_case": "I decipher the ancient hieroglyphics on the sarcophagus lid",
+      "response": " You focus on the intricate hieroglyphics adorning the sarcophagus lid. [ACTION:MAGIC|SPELL:Decipher Script|TARGET:sarcophagus lid|INTENT:hieroglyphics]",
+      "validation": {
+        "valid": true,
+        "action_type": "MAGIC",
+        "response": " You focus on the intricate hieroglyphics adorning the sarcophagus lid. [ACTION:MAGIC|SPELL:Decipher Script|TARGET:sarcophagus lid|INTENT:hieroglyphics]",
+        "player_visible": "You focus on the intricate hieroglyphics adorning the sarcophagus lid."
+      }
+    },
+    {
+      "test_case": "I meditate to attune myself to the ley lines of magical energy",
+      "response": " \"You prepare to meditate, focusing on the ley lines of magical energy. [ACTION:MAGIC|SPELL:attunement|LOCATION:ley_lines]\"",
+      "validation": {
+        "valid": true,
+        "action_type": "MAGIC",
+        "response": " \"You prepare to meditate, focusing on the ley lines of magical energy. [ACTION:MAGIC|SPELL:attunement|LOCATION:ley_lines]\"",
+        "player_visible": "\"You prepare to meditate, focusing on the ley lines of magical energy."
+      }
+    },
+    {
+      "test_case": "I concoct an alchemical solution using my herbalism kit",
+      "response": " You prepare to mix ingredients from your herbalist supplies. [ACTION:WORLD|OBJECT:herbalism kit|TASK:alchemical_solution]",
+      "validation": {
+        "valid": true,
+        "action_type": "WORLD",
+        "response": " You prepare to mix ingredients from your herbalist supplies. [ACTION:WORLD|OBJECT:herbalism kit|TASK:alchemical_solution]",
+        "player_visible": "You prepare to mix ingredients from your herbalist supplies."
+      }
+    },
+    {
+      "test_case": "I transcribe the spell from the grimoire into my spellbook",
+      "response": " You focus on the ancient tome in your hands, ready to commit the spell's intricate symbols to your spellbook. [ACTION:MAGIC|SPELL:transcription|TARGET:grimoire|BOOK:spellbook]",
+      "validation": {
+        "valid": false,
+        "reason": "Narrative too long",
+        "response": " You focus on the ancient tome in your hands, ready to commit the spell's intricate symbols to your spellbook. [ACTION:MAGIC|SPELL:transcription|TARGET:grimoire|BOOK:spellbook]"
+      }
+    },
+    {
+      "test_case": "I regale the tavern patrons with tales of my exploits",
+      "response": " You gather your stories and prepare to share them with the tavern-goers. [ACTION:NPC|TARGET:tavern_patrons|INTENT:storytelling]",
+      "validation": {
+        "valid": true,
+        "action_type": "NPC",
+        "response": " You gather your stories and prepare to share them with the tavern-goers. [ACTION:NPC|TARGET:tavern_patrons|INTENT:storytelling]",
+        "player_visible": "You gather your stories and prepare to share them with the tavern-goers."
+      }
+    },
+    {
+      "test_case": "I interrogate the prisoner about the cult's nefarious plans",
+      "response": " \"You position yourself to question the prisoner about the cult's sinister intentions. [ACTION:NPC|TARGET:prisoner|INTENT:interrogate|TOPIC:cult_plans]\"",
+      "validation": {
+        "valid": true,
+        "action_type": "NPC",
+        "response": " \"You position yourself to question the prisoner about the cult's sinister intentions. [ACTION:NPC|TARGET:prisoner|INTENT:interrogate|TOPIC:cult_plans]\"",
+        "player_visible": "\"You position yourself to question the prisoner about the cult's sinister intentions."
+      }
+    },
+    {
+      "test_case": "I barter with the nomadic merchant for exotic wares",
+      "response": " You engage in a negotiation with the nomadic merchant. [ACTION:NPC|TARGET:nomadic merchant|INTENT:barter|GOODS:exotic wares]",
+      "validation": {
+        "valid": false,
+        "reason": "Missing 'about to happen' phrasing",
+        "response": " You engage in a negotiation with the nomadic merchant. [ACTION:NPC|TARGET:nomadic merchant|INTENT:barter|GOODS:exotic wares]"
+      }
+    },
+    {
+      "test_case": "I traverse the treacherous mountain pass during the blizzard",
+      "response": " You brace yourself against the biting wind and prepare to navigate the treacherous mountain pass. [ACTION:EXPLORE|LOCATION:mountain_pass|WEATHER:blizzard]",
+      "validation": {
+        "valid": true,
+        "action_type": "EXPLORE",
+        "response": " You brace yourself against the biting wind and prepare to navigate the treacherous mountain pass. [ACTION:EXPLORE|LOCATION:mountain_pass|WEATHER:blizzard]",
+        "player_visible": "You brace yourself against the biting wind and prepare to navigate the treacherous mountain pass."
+      }
+    },
+    {
+      "test_case": "I disarm the complex mechanical trap guarding the treasury",
+      "response": " You prepare to disarm the complex mechanical trap guarding the treasury. [ACTION:WORLD|OBJECT:mechanical_trap|TASK:disarm]",
+      "validation": {
+        "valid": true,
+        "action_type": "WORLD",
+        "response": " You prepare to disarm the complex mechanical trap guarding the treasury. [ACTION:WORLD|OBJECT:mechanical_trap|TASK:disarm]",
+        "player_visible": "You prepare to disarm the complex mechanical trap guarding the treasury."
+      }
+    },
+    {
+      "test_case": "I commune with the ancient spirit bound to this hallowed grove",
+      "response": " You bow your head in reverence, focusing your mind on the ancient spirit. [ACTION:MAGIC|SPELL:commune|TARGET:ancient_spirit]",
+      "validation": {
+        "valid": true,
+        "action_type": "MAGIC",
+        "response": " You bow your head in reverence, focusing your mind on the ancient spirit. [ACTION:MAGIC|SPELL:commune|TARGET:ancient_spirit]",
+        "player_visible": "You bow your head in reverence, focusing your mind on the ancient spirit."
+      }
+    }
+  ],
+  "timestamp": "2025-05-14T17:10:34.535150",
+  "prompt_file": "/mnt/network_repo/RPGer/App/backend/prompts/dma_tier1_prompt.txt"
+}

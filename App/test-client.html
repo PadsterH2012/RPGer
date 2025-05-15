@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>RPG Web App Test Client</title>
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Connect to the Socket.IO server
+            const socket = io('http://localhost:5002');
+            
+            // Handle connection events
+            socket.on('connect', function() {
+                console.log('Connected to server');
+                document.getElementById('status').textContent = 'Connected';
+                document.getElementById('status').style.color = 'green';
+                
+                // Get initial game state
+                socket.emit('get_game_state');
+            });
+            
+            socket.on('disconnect', function() {
+                console.log('Disconnected from server');
+                document.getElementById('status').textContent = 'Disconnected';
+                document.getElementById('status').style.color = 'red';
+            });
+            
+            socket.on('error', function(data) {
+                console.error('Error:', data);
+                addMessage('error', 'Error: ' + data.message);
+            });
+            
+            socket.on('response', function(data) {
+                console.log('Response:', data);
+                addMessage('info', 'Server: ' + data.message);
+            });
+            
+            // Handle game state updates
+            socket.on('game_state_update', function(data) {
+                console.log('Game state update:', data);
+                document.getElementById('gameState').textContent = JSON.stringify(data, null, 2);
+                
+                // Update DM messages
+                const dmMessages = document.getElementById('dmMessages');
+                dmMessages.innerHTML = '';
+                if (data.dm_messages && data.dm_messages.length > 0) {
+                    data.dm_messages.forEach(function(message) {
+                        const messageElement = document.createElement('div');
+                        messageElement.className = 'dm-message';
+                        messageElement.textContent = message;
+                        dmMessages.appendChild(messageElement);
+                    });
+                    // Scroll to bottom
+                    dmMessages.scrollTop = dmMessages.scrollHeight;
+                }
+                
+                // Update action results
+                const actionResults = document.getElementById('actionResults');
+                actionResults.innerHTML = '';
+                if (data.action_results && data.action_results.length > 0) {
+                    data.action_results.forEach(function(result) {
+                        const resultElement = document.createElement('div');
+                        resultElement.className = 'action-result';
+                        resultElement.textContent = result;
+                        actionResults.appendChild(resultElement);
+                    });
+                    // Scroll to bottom
+                    actionResults.scrollTop = actionResults.scrollHeight;
+                }
+            });
+            
+            // Handle debug messages
+            socket.on('debug_message', function(message) {
+                console.log('Debug message:', message);
+                addMessage('debug', message);
+            });
+            
+            // Handle command submission
+            document.getElementById('commandForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                const command = document.getElementById('commandInput').value;
+                if (command) {
+                    socket.emit('command', { command: command });
+                    addMessage('command', 'You: ' + command);
+                    document.getElementById('commandInput').value = '';
+                }
+            });
+            
+            // Handle start game button
+            document.getElementById('startGameBtn').addEventListener('click', function() {
+                const mode = document.getElementById('modeSelect').value;
+                socket.emit('start_game', { mode: mode });
+                addMessage('info', 'Starting game in ' + mode + ' mode...');
+            });
+            
+            // Helper function to add messages to the debug panel
+            function addMessage(type, message) {
+                const debugMessages = document.getElementById('debugMessages');
+                const messageElement = document.createElement('div');
+                messageElement.className = 'debug-message ' + type;
+                messageElement.textContent = message;
+                debugMessages.appendChild(messageElement);
+                // Scroll to bottom
+                debugMessages.scrollTop = debugMessages.scrollHeight;
+            }
+        });
+    </script>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            margin: 0; 
+            padding: 20px; 
+            background-color: #f0f0f0;
+        }
+        .container { 
+            display: flex; 
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .left-panel { 
+            flex: 1; 
+            margin-right: 20px; 
+        }
+        .right-panel { 
+            flex: 1; 
+        }
+        .panel { 
+            border: 1px solid #ccc; 
+            border-radius: 5px;
+            padding: 15px; 
+            margin-bottom: 20px; 
+            background-color: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .panel h2 {
+            margin-top: 0;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+        .debug-messages, .dm-messages, .action-results { 
+            height: 200px; 
+            overflow-y: auto; 
+            background-color: #f5f5f5; 
+            padding: 10px; 
+            border-radius: 3px;
+            border: 1px solid #ddd;
+        }
+        .game-state { 
+            height: 500px; 
+            overflow-y: auto; 
+            background-color: #f5f5f5; 
+            padding: 10px; 
+            font-family: monospace;
+            font-size: 12px;
+            border-radius: 3px;
+            border: 1px solid #ddd;
+        }
+        .status { 
+            font-weight: bold; 
+        }
+        input[type="text"] { 
+            width: 80%; 
+            padding: 8px; 
+            border: 1px solid #ccc;
+            border-radius: 3px;
+        }
+        button { 
+            padding: 8px 15px; 
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        select {
+            padding: 8px;
+            margin-right: 10px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+        }
+        .debug-message {
+            margin-bottom: 5px;
+            padding: 5px;
+            border-radius: 3px;
+        }
+        .debug-message.error {
+            background-color: #ffebee;
+            color: #c62828;
+        }
+        .debug-message.info {
+            background-color: #e3f2fd;
+            color: #1565c0;
+        }
+        .debug-message.debug {
+            background-color: #f1f8e9;
+            color: #33691e;
+        }
+        .debug-message.command {
+            background-color: #fff8e1;
+            color: #ff8f00;
+        }
+        .dm-message {
+            margin-bottom: 5px;
+            padding: 5px;
+            background-color: #e8f5e9;
+            border-radius: 3px;
+        }
+        .action-result {
+            margin-bottom: 5px;
+            padding: 5px;
+            background-color: #fff3e0;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+    <h1>RPG Web App Test Client</h1>
+    <div class="container">
+        <div class="left-panel">
+            <div class="panel">
+                <h2>Connection Status: <span id="status" class="status">Disconnected</span></h2>
+            </div>
+            <div class="panel">
+                <h2>Start Game</h2>
+                <select id="modeSelect">
+                    <option value="standard">Standard</option>
+                    <option value="create_character">Create Character</option>
+                    <option value="create_campaign">Create Campaign</option>
+                    <option value="continue_campaign">Continue Campaign</option>
+                    <option value="random_encounter">Random Encounter</option>
+                </select>
+                <button id="startGameBtn">Start Game</button>
+            </div>
+            <div class="panel">
+                <h2>Send Command</h2>
+                <form id="commandForm">
+                    <input type="text" id="commandInput" placeholder="Enter command...">
+                    <button type="submit">Send</button>
+                </form>
+            </div>
+            <div class="panel">
+                <h2>DM Messages</h2>
+                <div id="dmMessages" class="dm-messages"></div>
+            </div>
+            <div class="panel">
+                <h2>Action Results</h2>
+                <div id="actionResults" class="action-results"></div>
+            </div>
+            <div class="panel">
+                <h2>Debug Messages</h2>
+                <div id="debugMessages" class="debug-messages"></div>
+            </div>
+        </div>
+        <div class="right-panel">
+            <div class="panel">
+                <h2>Game State</h2>
+                <pre id="gameState" class="game-state">No game state yet</pre>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
