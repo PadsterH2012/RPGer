@@ -70,11 +70,32 @@ Geographic features are derived directly from the terrain:
 - **Forests**: Grow in areas with suitable elevation and moisture
 - **Natural Resources**: Placed based on terrain types (e.g., mines in mountains)
 
+#### High-Resolution River Generation
+
+For detailed river systems, a high-resolution grid approach can be used:
+
 ```python
-# Rivers follow elevation gradients from the terrain
+# High-resolution terrain for river generation (one-time process)
+high_res_terrain = HighResolutionTerrainLayer(seed, resolution=(4096, 4096))
+high_res_terrain.generate()
+
+# Hydrological simulation for realistic river formation
+river_system = HydrologicalSystem(high_res_terrain)
+river_system.simulate_rainfall(iterations=1000)
+river_system.simulate_water_flow()
+river_system.simulate_erosion(iterations=500)
+
+# Extract river network from simulation results
 rivers_layer = RiversLayer(seed, parameters)
-rivers_layer.generate(terrain_layer)  # Requires terrain data
+rivers_layer.extract_from_hydrological_system(river_system)
+rivers_layer.classify_river_types()  # Categorize as streams, rivers, major rivers
 ```
+
+The high-resolution approach allows for:
+- Realistic river meandering and branching patterns
+- Natural formation of tributaries and watersheds
+- Proper handling of elevation-based water flow
+- Erosion effects that shape the terrain over time
 
 ### 3. Weather Patterns
 
@@ -106,10 +127,10 @@ def calculate_daylight_hours(day_of_year, latitude):
     """Calculate daylight hours based on day of year and latitude"""
     # Day of year (1-365)
     # Latitude (degrees, 0=equator, +90=north pole, -90=south pole)
-    
+
     # Calculate solar declination
     declination = 23.45 * math.sin(math.radians((360/365) * (day_of_year - 81)))
-    
+
     # Calculate day length in hours
     if latitude * declination > 90:
         return 24  # Polar day
@@ -117,8 +138,8 @@ def calculate_daylight_hours(day_of_year, latitude):
         return 0   # Polar night
     else:
         day_length = 24 - (24/math.pi) * math.acos(
-            (math.sin(math.radians(-0.83)) + 
-             math.sin(math.radians(latitude)) * math.sin(math.radians(declination))) / 
+            (math.sin(math.radians(-0.83)) +
+             math.sin(math.radians(latitude)) * math.sin(math.radians(declination))) /
             (math.cos(math.radians(latitude)) * math.cos(math.radians(declination)))
         )
         return day_length
@@ -144,10 +165,10 @@ settlements_layer.generate(terrain_layer, rivers_layer)
 def evaluate_settlement_location(x, y, terrain_layer, rivers_layer):
     """Score a location for settlement suitability"""
     score = 0
-    
+
     # Get terrain data
     terrain_data = terrain_layer.get_data_at(x, y)
-    
+
     # Basic habitability
     if terrain_data["is_water"]:
         return 0  # Can't build on water
@@ -157,7 +178,7 @@ def evaluate_settlement_location(x, y, terrain_layer, rivers_layer):
         score -= 10  # Somewhat difficult in hills
     elif terrain_data["terrain_type"] == "plains":
         score += 20  # Good for farming
-    
+
     # Water access (critical for settlements)
     has_water_access = False
     for dx in range(-5, 6):
@@ -169,10 +190,10 @@ def evaluate_settlement_location(x, y, terrain_layer, rivers_layer):
                 score += 30  # Major bonus for river access
                 score += river_data["river_size"] * 5  # Larger rivers are better
                 break
-    
+
     if not has_water_access:
         score -= 40  # Major penalty for no water access
-    
+
     # Coastal access (good for trade)
     is_coastal = False
     for dx in range(-10, 11):
@@ -183,7 +204,7 @@ def evaluate_settlement_location(x, y, terrain_layer, rivers_layer):
                 is_coastal = True
                 score += 25  # Bonus for coastal access
                 break
-    
+
     return score
 ```
 
@@ -200,34 +221,34 @@ Infrastructure connects settlements and resources, following terrain constraints
 # Road generation connects settlements while respecting terrain
 def generate_roads(settlements_layer, terrain_layer):
     roads = []
-    
+
     # Connect major settlements first
-    major_settlements = [s for s in settlements_layer.settlements 
+    major_settlements = [s for s in settlements_layer.settlements
                          if s["type"] in ["city", "town"]]
-    
+
     # Sort by population (connect largest first)
     major_settlements.sort(key=lambda s: s["population"], reverse=True)
-    
+
     # Connect each settlement to nearest neighbors
     for i, settlement in enumerate(major_settlements):
         # Find nearest unconnected settlements
         nearest = find_nearest_settlements(settlement, major_settlements[:i])
-        
+
         for target in nearest:
             # Find path that follows terrain
             path = find_terrain_path(
-                settlement["position"], 
+                settlement["position"],
                 target["position"],
                 terrain_layer
             )
-            
+
             if path:
                 roads.append({
                     "path": path,
                     "type": "major_road",
                     "connects": [settlement["name"], target["name"]]
                 })
-    
+
     return roads
 ```
 
@@ -265,6 +286,25 @@ To implement this hierarchical system effectively:
 3. **Cache Derived Data**: Compute and store derived properties (e.g., "near_water") to avoid repeated calculations
 4. **Use Consistent Coordinates**: Maintain the same coordinate system across all layers
 5. **Parameterize Relationships**: Allow adjustment of how strongly terrain influences other elements
+
+### High-Resolution Grid Approach
+
+For the most realistic world generation, a multi-resolution approach can be used:
+
+1. **Initial High-Resolution Generation**:
+   - Generate terrain and rivers at high resolution (4096×4096)
+   - Perform detailed hydrological simulation as a one-time process
+   - Store results in database for AI reasoning
+
+2. **Gameplay-Oriented Representation**:
+   - Downsample or extract key features for gameplay purposes
+   - Maintain separate representations for AI reasoning vs. player interaction
+   - Allow AI to reference the detailed data when generating descriptions or making decisions
+
+3. **Database Integration**:
+   - Store high-resolution grid data in compressed format
+   - Index key features for efficient querying
+   - Implement spatial queries for location-based reasoning
 
 ## Conclusion
 

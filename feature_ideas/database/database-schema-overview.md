@@ -311,11 +311,96 @@ This document provides a structured overview of all database schema elements for
 - `knowledge`: What they know
 - `locations`: Where they can be found
 - `hooks`: Adventure hooks
+- `behavior_patterns`: Extracted behavior patterns
+  - `interaction_patterns`: How the NPC interacts with others
+    - `pattern_id`: Reference to extracted pattern
+    - `pattern_type`: Type of interaction pattern
+    - `trigger_conditions`: What prompts this behavior
+    - `response_tendencies`: How the NPC typically responds
+  - `decision_making`: How the NPC makes decisions
+    - `priorities`: What the NPC values most
+    - `risk_tolerance`: How the NPC handles risk
+    - `moral_framework`: Ethical considerations
+  - `emotional_responses`: How the NPC responds emotionally
+    - `primary_emotions`: Dominant emotional states
+    - `emotional_triggers`: What provokes emotional responses
+    - `expression_style`: How emotions are displayed
+  - `routine_behaviors`: Regular activities and habits
+    - `daily_routines`: Regular activities
+    - `quirks`: Distinctive behavioral quirks
+    - `comfort_behaviors`: What the NPC does when comfortable
+    - `stress_behaviors`: What the NPC does when stressed
+  - `social_dynamics`: How the NPC behaves in groups
+    - `leadership_style`: How the NPC leads or follows
+    - `group_role`: Typical role in group settings
+    - `status_signals`: How status is displayed or acknowledged
+- `novel_extraction_metadata`: Information about pattern sources
+  - `description_pattern_id`: Source of description pattern
+  - `dialogue_pattern_ids`: Sources of dialogue patterns
+  - `personality_pattern_id`: Source of personality pattern
+  - `behavior_pattern_ids`: Sources of behavior patterns
+  - `transformation_methods`: How patterns were adapted
 - `vector_embedding`: For semantic search
 - `extended_properties`: Additional information
   - `faction_memberships`
   - `secrets`
   - `possessions`
+
+#### Example NPC Record with Behavior Patterns
+
+```json
+{
+  "_id": "NPC-127",
+  "name": "Harbormaster Selene",
+  "race": "Human",
+  "class": "Expert",
+  "level": 5,
+  "description": "Harbormaster Selene stands by the tide charts, her compact frame bent intently over the ink-marked parchment. The lantern light catches the silver in her braided hair as she traces the current patterns with a weathered finger.",
+  "personality": ["practical", "authoritative", "protective", "experienced"],
+  "voice": {
+    "speech_pattern": "Direct and technical, using maritime terminology naturally",
+    "common_phrases": ["Mark my words", "I've seen it before", "Safety first, always"],
+    "tone": "Firm but not unkind"
+  },
+  "behavior_patterns": {
+    "interaction_patterns": [
+      {
+        "pattern_id": "IP-042",
+        "pattern_type": "authority-expertise",
+        "trigger_conditions": "When safety or regulations are questioned",
+        "response_tendencies": "Provides historical examples that validate her position"
+      },
+      {
+        "pattern_id": "IP-089",
+        "pattern_type": "mentorship",
+        "trigger_conditions": "When interacting with inexperienced sailors",
+        "response_tendencies": "Offers advice wrapped in personal anecdotes"
+      }
+    ],
+    "decision_making": {
+      "priorities": ["safety of vessels", "efficiency of harbor", "upholding regulations"],
+      "risk_tolerance": "Low for others' safety, moderate for personal risk",
+      "moral_framework": "Utilitarian with strong sense of duty"
+    },
+    "emotional_responses": {
+      "primary_emotions": ["concern", "pride", "frustration"],
+      "emotional_triggers": {
+        "concern": "Dangerous weather or reckless behavior",
+        "pride": "Well-run harbor operations, successful navigation of difficult conditions",
+        "frustration": "Bureaucratic obstacles, disregard for expertise"
+      },
+      "expression_style": "Restrained but visible in body language and tone"
+    }
+  },
+  "novel_extraction_metadata": {
+    "description_pattern_id": "PD-127",
+    "dialogue_pattern_ids": ["DP-089", "DP-142"],
+    "personality_pattern_id": "PP-056",
+    "behavior_pattern_ids": ["BP-042", "BP-089"],
+    "transformation_methods": ["context shift", "gender variation", "role adaptation"]
+  }
+}
+```
 
 ### Name Collection Schema
 - `_id`: Unique identifier
@@ -412,6 +497,132 @@ This document provides a structured overview of all database schema elements for
 
 ## Content Generation Elements
 
+### Action-Specific Prompt Assembly Schema
+- `_id`: Unique identifier
+- `agent_type`: Type of agent (DMA, CMA, CRA, etc.)
+- `action_category`: Category of action
+- `prompt_components`: Collection of prompt elements
+  - `base_templates`: Base templates for different actions
+    - `template_id`: Unique template identifier
+    - `template_structure`: Basic structure of the prompt
+    - `required_parameters`: Parameters that must be included
+    - `optional_parameters`: Parameters that can be included
+  - `instruction_sets`: Sets of instructions for different actions
+    - `instruction_id`: Unique instruction identifier
+    - `instruction_text`: The actual instruction
+    - `purpose`: What the instruction accomplishes
+    - `success_rate`: How often the instruction leads to success
+  - `context_elements`: Contextual information elements
+    - `element_id`: Unique element identifier
+    - `element_type`: Type of context element
+    - `relevance_score`: How relevant the element is
+    - `token_cost`: Approximate token usage
+  - `parameter_sets`: Sets of parameters for different actions
+    - `parameter_id`: Unique parameter identifier
+    - `parameter_name`: Name of the parameter
+    - `parameter_description`: Description of the parameter
+    - `parameter_type`: Data type of the parameter
+- `error_patterns`: Patterns of errors to avoid
+  - `error_id`: Unique error identifier
+  - `error_description`: Description of the error
+  - `error_frequency`: How often the error occurs
+  - `associated_components`: Components associated with the error
+  - `avoidance_strategies`: Strategies to avoid the error
+- `performance_metrics`: Metrics for evaluating performance
+  - `token_efficiency`: Token usage metrics
+  - `response_quality`: Quality metrics
+  - `error_rate`: Error frequency metrics
+  - `response_time`: Latency metrics
+- `vector_embeddings`: Vector representations for retrieval
+  - `component_vectors`: Vectors for prompt components
+  - `error_vectors`: Vectors for error patterns
+- `metadata`: Additional information
+  - `creation_date`: When the assembly was created
+  - `last_updated`: When the assembly was last updated
+  - `version`: Version number
+  - `usage_count`: How often the assembly has been used
+
+#### Example Action-Specific Prompt Assembly Records
+
+```json
+{
+  "_id": "ASPA-001",
+  "agent_type": "DMA",
+  "action_category": "NPC_DIALOGUE_GENERATION",
+  "prompt_components": {
+    "base_templates": [
+      {
+        "template_id": "BT-042",
+        "template_structure": "You are generating dialogue for an NPC named {npc_name} who is {npc_role}. The player character {player_name} has just {player_action}. Respond with dialogue that {dialogue_purpose}.",
+        "required_parameters": ["npc_name", "npc_role", "player_name", "player_action", "dialogue_purpose"],
+        "optional_parameters": ["npc_mood", "location_context", "time_of_day"],
+        "success_rate": 0.87
+      }
+    ],
+    "instruction_sets": [
+      {
+        "instruction_id": "IS-127",
+        "instruction_text": "Keep the dialogue concise and authentic to the character's personality.",
+        "purpose": "Ensures dialogue quality and consistency",
+        "success_rate": 0.92
+      },
+      {
+        "instruction_id": "IS-128",
+        "instruction_text": "Include one subtle reference to the NPC's background or current situation.",
+        "purpose": "Adds depth and continuity to the character",
+        "success_rate": 0.85
+      }
+    ],
+    "context_elements": [
+      {
+        "element_id": "CE-056",
+        "element_type": "NPC_PERSONALITY",
+        "element_content": "{npc_name} is {personality_traits} and tends to {behavioral_pattern}.",
+        "relevance_score": 0.95,
+        "token_cost": 25
+      }
+    ]
+  },
+  "error_patterns": [
+    {
+      "error_id": "EP-023",
+      "error_description": "NPC responds as if they know information they shouldn't have access to",
+      "error_frequency": 0.15,
+      "associated_components": ["IS-129", "CE-057"],
+      "avoidance_strategies": ["Explicitly state information limitations", "Check for knowledge boundaries"]
+    },
+    {
+      "error_id": "EP-024",
+      "error_description": "Dialogue becomes repetitive with similar phrasing patterns",
+      "error_frequency": 0.22,
+      "associated_components": ["BT-043"],
+      "avoidance_strategies": ["Vary sentence structures", "Include instruction for diverse phrasing"]
+    }
+  ],
+  "performance_metrics": {
+    "token_efficiency": {
+      "average_tokens_per_call": 320,
+      "token_reduction_from_baseline": 0.45
+    },
+    "response_quality": {
+      "player_satisfaction_rating": 4.2,
+      "consistency_score": 0.88,
+      "variety_score": 0.76
+    },
+    "error_rate": {
+      "overall_error_frequency": 0.08,
+      "most_common_error": "EP-024"
+    }
+  },
+  "metadata": {
+    "creation_date": "2023-04-15",
+    "last_updated": "2023-05-12",
+    "version": "1.3",
+    "usage_count": 342
+  }
+}
+```
+
 ### Novel Extraction Schema
 - `_id`: Unique identifier
 - `source_novel`: Source information
@@ -445,6 +656,61 @@ This document provides a structured overview of all database schema elements for
   - `quality_rating`: Pattern effectiveness score
   - `usage_count`: How often used
   - `success_rate`: How well patterns perform
+
+#### Example Novel Extraction Records
+
+```json
+{
+  "_id": "NE-001",
+  "source_novel": {
+    "title": "The Sea Captain's Journey",
+    "author": "Elizabeth Harmon",
+    "genre": "Maritime Fiction",
+    "publication_year": 1998
+  },
+  "extraction_patterns": {
+    "character_description_patterns": [
+      {
+        "pattern_id": "PD-127",
+        "pattern_structure": "[CHARACTER] stood by [LOCATION_FEATURE], [PHYSICAL_ATTRIBUTE] [POSITION_DETAIL]",
+        "focus_elements": ["posture", "environment interaction", "lighting"],
+        "sensory_elements": ["visual", "spatial"],
+        "example": "Harbor Master Selene stood by the tide charts, her compact frame bent intently over the ink-marked parchment."
+      }
+    ],
+    "dialogue_patterns": [
+      {
+        "pattern_id": "DP-089",
+        "structure": "threat assessment + conditional consequence + experience-based authority statement",
+        "sentence_structures": ["complex-compound", "conditional"],
+        "vocabulary_level": "professional-specialized",
+        "emotional_expressions": ["concern", "authority", "determination"],
+        "example": "The western reefs are treacherous this season. If merchant vessels attempt the direct route during the autumn squalls, we'll see wrecks piling up on the shoals."
+      }
+    ],
+    "personality_patterns": [
+      {
+        "pattern_id": "PP-056",
+        "trait_combinations": ["practical", "authoritative", "protective", "experienced"],
+        "behavioral_expressions": ["preventative action", "reference to experience", "prioritizing safety"],
+        "decision_patterns": ["cautious but firm", "based on extensive experience"],
+        "example": "I've charted these waters for twenty-five years, and I won't have lives lost to save a few days' sailing time."
+      }
+    ]
+  },
+  "transformation_methods": {
+    "context_shifts": ["maritime to mountain pass", "captain to caravan leader"],
+    "detail_substitutions": ["ships to caravans", "reefs to narrow passes", "tides to seasonal storms"],
+    "variation_techniques": ["gender variation", "age adjustment", "expertise domain shift"]
+  },
+  "metadata": {
+    "extraction_date": "2023-05-10",
+    "quality_rating": 4.8,
+    "usage_count": 27,
+    "success_rate": 0.92
+  }
+}
+```
 
 ## Campaign Elements
 
@@ -489,9 +755,13 @@ This document provides a structured overview of all database schema elements for
 - `campaign_id`: Associated campaign
 - `session_id`: Associated session
 - `agent_workflows`: Agent configurations
-  - `DungeonMasterAgent`
-  - `NPCAgent`
-  - `EnvironmentAgent`
-  - `CombatAgent`
+  - `DMA`: Dungeon Master Agent
+  - `CRA`: Combat Resolution Agent
+  - `CMA`: Character Management Agent
+  - `NEA`: NPC & Encounter Agent
+  - `EEA`: Exploration Engine Agent
+  - `WEA`: World & Environment Agent
+  - `MSA`: Magic System Agent
+  - `CaMA`: Campaign Manager Agent
 - `inter_agent_communication`: Agent interaction
 - `state_tracking`: Game state management
