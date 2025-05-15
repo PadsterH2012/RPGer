@@ -1,0 +1,148 @@
+.connection-status-widget {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.connection-status-widget .widget-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 15px;
+  background-color: var(--primary-color, #8b5cf6);
+  color: white;
+}
+
+.connection-status-widget .widget-header h3 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+.connection-status-widget .refresh-button {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.connection-status-widget .refresh-button:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.connection-status-widget .refresh-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.connection-status-widget .widget-content {
+  flex: 1;
+  padding: 15px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+/* Connection boxes layout */
+.connection-boxes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: center;
+}
+
+.connection-box {
+  width: calc(33% - 8px);
+  min-width: 90px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Status indicators (button-like boxes) */
+.status-indicator {
+  width: 100%;
+  height: 40px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  color: white;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.status-indicator.green {
+  background-color: #10b981; /* Green for connected */
+}
+
+.status-indicator.red {
+  background-color: #ef4444; /* Red for disconnected */
+}
+
+.status-indicator.amber {
+  background-color: #f59e0b; /* Amber for connecting */
+}
+
+.status-indicator.gray {
+  background-color: #9ca3af; /* Gray for unknown */
+}
+
+.service-name {
+  font-size: 0.9rem;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+/* Service stats display */
+.service-stats {
+  min-height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 0;
+}
+
+.stats-details {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.stats-text {
+  font-size: 0.8rem;
+  color: #4b5563;
+  font-weight: 500;
+}
+
+.stats-text-small {
+  font-size: 0.7rem;
+  color: #6b7280;
+  font-weight: 400;
+}
+
+/* Last checked timestamp */
+.last-checked {
+  margin-top: 15px;
+  text-align: center;
+  font-size: 0.8rem;
+  color: #666;
+  font-style: italic;
+}
+
+/* Responsive adjustments */
+@media (max-width: 480px) {
+  .connection-boxes {
+    flex-direction: column;
+  }
+
+  .connection-box {
+    width: 100%;
+  }
+}

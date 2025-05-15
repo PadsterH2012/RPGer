@@ -1,0 +1,167 @@
+services:
+  # MongoDB Service
+  mongodb:
+    image: mongo:latest
+    container_name: rpger-mongodb
+    restart: unless-stopped
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_USERNAME:-admin}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_PASSWORD:-password}
+      - MONGO_INITDB_DATABASE=rpger
+    volumes:
+      - /data2/rpger/mongodb:/data/db
+      - ./init-scripts/mongo:/docker-entrypoint-initdb.d
+    ports:
+      - "${MONGO_PORT:-27017}:27017"
+    networks:
+      - rpger-network
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 40s
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "100m"
+        max-file: "3"
+
+  # Redis Service
+  redis:
+    image: redis:latest
+    container_name: rpger-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-password}
+    volumes:
+      - /data2/rpger/redis:/data
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    networks:
+      - rpger-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD:-password}", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.2'
+          memory: 256M
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "100m"
+        max-file: "3"
+
+  # Chroma Vector DB
+  chroma:
+    image: ghcr.io/chroma-core/chroma:latest
+    container_name: rpger-chroma
+    restart: unless-stopped
+    volumes:
+      - /data2/rpger/chroma:/chroma/chroma_data
+    ports:
+      - "${CHROMA_PORT:-8000}:8000"
+    environment:
+      - CHROMA_DB_IMPL=duckdb+parquet
+      - CHROMA_PERSIST_DIRECTORY=/chroma/chroma_data
+    networks:
+      - rpger-network
+    # Disable health check for Chroma since it doesn't have curl or Python
+    # but we know it's working based on external curl tests
+    # healthcheck:
+    #   test: ["CMD", "curl", "-f", "http://localhost:8000/api/v2/heartbeat"]
+    #   interval: 30s
+    #   timeout: 10s
+    #   retries: 3
+    #   start_period: 15s
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "100m"
+        max-file: "3"
+
+  # MongoDB Express (Admin Interface)
+  mongo-express:
+    image: mongo-express:latest
+    container_name: rpger-mongo-express
+    restart: unless-stopped
+    ports:
+      - "${MONGO_EXPRESS_PORT:-8081}:8081"
+    environment:
+      - ME_CONFIG_MONGODB_SERVER=mongodb
+      - ME_CONFIG_MONGODB_PORT=27017
+      - ME_CONFIG_MONGODB_ADMINUSERNAME=${MONGO_USERNAME:-admin}
+      - ME_CONFIG_MONGODB_ADMINPASSWORD=${MONGO_PASSWORD:-password}
+      - ME_CONFIG_BASICAUTH_USERNAME=${MONGO_EXPRESS_USERNAME:-admin}
+      - ME_CONFIG_BASICAUTH_PASSWORD=${MONGO_EXPRESS_PASSWORD:-password}
+      - ME_CONFIG_MONGODB_AUTH_DATABASE=admin
+      - ME_CONFIG_SITE_COOKIESECRET=cookiesecret
+      - ME_CONFIG_SITE_SESSIONSECRET=sessionsecret
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    networks:
+      - rpger-network
+    deploy:
+      resources:
+        limits:
+          cpus: '0.3'
+          memory: 256M
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "3"
+
+  # Redis Commander (Admin Interface)
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: rpger-redis-commander
+    restart: unless-stopped
+    ports:
+      - "${REDIS_COMMANDER_PORT:-8082}:8081"
+    environment:
+      - REDIS_HOSTS=local:redis:6379:0:${REDIS_PASSWORD:-password}
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - rpger-network
+    deploy:
+      resources:
+        limits:
+          cpus: '0.3'
+          memory: 256M
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "3"
+
+networks:
+  rpger-network:
+    name: rpger-network
+    external: true

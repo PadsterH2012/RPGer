@@ -1,6 +1,32 @@
 # RPG Database Schema Overview
 
+> **Note**: This document provides a comprehensive reference for all database schemas in the RPGer system. For information on the database infrastructure implementation, see [Database Stack Architecture](database-stack-architecture.md). For a high-level overview of the entire system, see [System Architecture](../system/system-architecture.md).
+
 This document provides a structured overview of all database schema elements for the RPG system, organized into logical groups.
+
+## Database Components and Their Roles
+
+The RPGer system uses three complementary database technologies, each serving a specific purpose:
+
+1. **MongoDB**: Primary database for structured data and document storage
+   - Stores all schema elements documented in this overview
+   - Provides flexible document-based storage for complex nested data
+   - Handles relationships between different data entities
+   - Supports indexing for efficient queries
+
+2. **Chroma**: Vector database for embeddings and semantic search capabilities
+   - Stores vector embeddings for semantic search functionality
+   - Enables natural language queries against content
+   - Supports AI agents in finding relevant information
+   - Optimized for similarity searches and retrieval
+
+3. **Redis**: In-memory database for caching and real-time data access
+   - Caches frequently accessed data for performance
+   - Manages session state and temporary data
+   - Handles pub/sub messaging between components
+   - Provides high-speed access to real-time game data
+
+The schemas documented below primarily describe the structure of data stored in MongoDB, though many entities include `vector_embedding` fields that reference data stored in Chroma.
 
 ## Core Reference Materials
 
@@ -755,13 +781,13 @@ This document provides a structured overview of all database schema elements for
 - `campaign_id`: Associated campaign
 - `session_id`: Associated session
 - `agent_workflows`: Agent configurations
-  - `DMA`: Dungeon Master Agent
-  - `CRA`: Combat Resolution Agent
-  - `CMA`: Character Management Agent
-  - `NEA`: NPC & Encounter Agent
-  - `EEA`: Exploration Engine Agent
-  - `WEA`: World & Environment Agent
-  - `MSA`: Magic System Agent
-  - `CaMA`: Campaign Manager Agent
+  - `DMA`: Dungeon Master Agent - Coordinates other agents and manages overall narrative
+  - `CRA`: Combat Resolution Agent - Handles combat mechanics and encounters
+  - `CMA`: Character Management Agent - Manages player and NPC character data
+  - `NEA`: NPC & Encounter Agent - Generates NPC interactions and encounters
+  - `EEA`: Exploration Engine Agent - Manages world exploration and discovery
+  - `WEA`: World & Environment Agent - Handles environment descriptions and effects
+  - `MSA`: Magic System Agent - Manages magical effects and spell interactions
+  - `CaMA`: Campaign Manager Agent - Tracks campaign progress and storylines
 - `inter_agent_communication`: Agent interaction
 - `state_tracking`: Game state management

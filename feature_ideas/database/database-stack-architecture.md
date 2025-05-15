@@ -1,5 +1,7 @@
 # Permanent Database Stack Architecture
 
+> **Note**: This document focuses on the technical implementation of the database infrastructure. For a high-level overview of the system architecture, see [System Architecture](../system/system-architecture.md). For details on database schemas and data structures, see [Database Schema Overview](database-schema-overview.md).
+
 ## Feature Request
 
 Create a permanent database stack architecture for the RPGer system that separates database services (MongoDB, Redis, Chroma) from the application components (frontend, backend). This architecture should support data persistence, automated backups, and container preseeding to facilitate rebuilds and system maintenance.
@@ -13,9 +15,9 @@ A **containerized multi-database architecture** with persistent storage, automat
 A **permanent database stack** that provides database services to the RPG application:
 
 1. **Containerized Database Services**
-   - MongoDB for structured data storage
-   - Redis for caching and real-time data
-   - Chroma for vector search capabilities
+   - **MongoDB**: Primary database for structured data and document storage
+   - **Redis**: In-memory database for caching and real-time data access
+   - **Chroma**: Vector database for embeddings and semantic search capabilities
    - Each database in its own container with appropriate resource limits
 
 2. **Persistent Storage Layer**
@@ -41,6 +43,26 @@ A **permanent database stack** that provides database services to the RPG applic
    - Limited external exposure for security
    - Connection pooling for efficient resource usage
    - Health monitoring and alerting
+
+## Relationship to Database Schemas
+
+The infrastructure described in this document is designed to support the comprehensive schema structure detailed in the [Database Schema Overview](database-schema-overview.md). Key considerations for each database component:
+
+1. **MongoDB Configuration**
+   - Configured to efficiently store and query the complex nested document structures
+   - Indexes created for frequently queried fields to optimize performance
+   - Replica set configuration available for production deployments
+   - Backup strategy preserves all schema data and relationships
+
+2. **Chroma Configuration**
+   - Optimized for storing and retrieving vector embeddings referenced in schemas
+   - Configured to handle the dimensionality of embeddings used in the system
+   - Persistence settings ensure vector data survives container restarts
+
+3. **Redis Configuration**
+   - Memory allocation balanced for caching needs and available system resources
+   - Persistence configured to prevent data loss during restarts
+   - Key expiration policies aligned with session and temporary data requirements
 
 ## Implementation Plan
 
@@ -218,18 +240,18 @@ COLLECTIONS=$(mongo --host mongodb --username admin --password password --authen
 
 if [ "$COLLECTIONS" -eq "0" ]; then
   echo "MongoDB is empty, restoring from latest backup..."
-  
+
   # Find the latest backup
   LATEST_BACKUP=$(find /backups/mongodb -name "*.tar.gz" -type f -printf "%T@ %p\n" | sort -n | tail -1 | cut -f2- -d" ")
-  
+
   if [ -n "$LATEST_BACKUP" ]; then
     # Extract the backup
     TEMP_DIR=$(mktemp -d)
     tar -xzf $LATEST_BACKUP -C $TEMP_DIR
-    
+
     # Restore the backup
     mongorestore --host mongodb --username admin --password password --authenticationDatabase admin $TEMP_DIR/*/
-    
+
     # Clean up
     rm -rf $TEMP_DIR
     echo "MongoDB restored successfully from $LATEST_BACKUP"

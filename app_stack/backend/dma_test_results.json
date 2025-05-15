@@ -1,0 +1,159 @@
+{
+  "total": 15,
+  "passed": 15,
+  "failed": 0,
+  "details": [
+    {
+      "test_case": "I attack the goblin with my sword",
+      "response": " You prepare to attack the goblin with your sword. [ACTION:COMBAT|TARGET:goblin|WEAPON:sword]",
+      "validation": {
+        "valid": true,
+        "action_type": "COMBAT",
+        "response": " You prepare to attack the goblin with your sword. [ACTION:COMBAT|TARGET:goblin|WEAPON:sword]",
+        "player_visible": "You prepare to attack the goblin with your sword."
+      }
+    },
+    {
+      "test_case": "I shoot an arrow at the orc",
+      "response": " You prepare to shoot an arrow at the orc. [ACTION:COMBAT|TARGET:orc|WEAPON:arrow]",
+      "validation": {
+        "valid": true,
+        "action_type": "COMBAT",
+        "response": " You prepare to shoot an arrow at the orc. [ACTION:COMBAT|TARGET:orc|WEAPON:arrow]",
+        "player_visible": "You prepare to shoot an arrow at the orc."
+      }
+    },
+    {
+      "test_case": "I cast Magic Missile at the wizard",
+      "response": " You prepare to cast Magic Missile at the wizard. [ACTION:MAGIC|SPELL:Magic Missile|TARGET:wizard]",
+      "validation": {
+        "valid": true,
+        "action_type": "MAGIC",
+        "response": " You prepare to cast Magic Missile at the wizard. [ACTION:MAGIC|SPELL:Magic Missile|TARGET:wizard]",
+        "player_visible": "You prepare to cast Magic Missile at the wizard."
+      }
+    },
+    {
+      "test_case": "I search the room for traps",
+      "response": " You prepare to search the room for traps. [ACTION:EXPLORE|LOCATION:room|INTENT:traps]",
+      "validation": {
+        "valid": true,
+        "action_type": "EXPLORE",
+        "response": " You prepare to search the room for traps. [ACTION:EXPLORE|LOCATION:room|INTENT:traps]",
+        "player_visible": "You prepare to search the room for traps."
+      }
+    },
+    {
+      "test_case": "I look around the tavern",
+      "response": " You prepare to look around the tavern. [ACTION:EXPLORE|LOCATION:tavern]",
+      "validation": {
+        "valid": true,
+        "action_type": "EXPLORE",
+        "response": " You prepare to look around the tavern. [ACTION:EXPLORE|LOCATION:tavern]",
+        "player_visible": "You prepare to look around the tavern."
+      }
+    },
+    {
+      "test_case": "I check the bookshelf for hidden compartments",
+      "response": " You prepare to check the bookshelf for hidden compartments. [ACTION:WORLD|OBJECT:bookshelf|TASK:hidden_compartments]",
+      "validation": {
+        "valid": true,
+        "action_type": "WORLD",
+        "response": " You prepare to check the bookshelf for hidden compartments. [ACTION:WORLD|OBJECT:bookshelf|TASK:hidden_compartments]",
+        "player_visible": "You prepare to check the bookshelf for hidden compartments."
+      }
+    },
+    {
+      "test_case": "I check my inventory",
+      "response": " \"You prepare to check your belongings. [ACTION:CHARACTER|TASK:inventory]\"",
+      "validation": {
+        "valid": true,
+        "action_type": "CHARACTER",
+        "response": " \"You prepare to check your belongings. [ACTION:CHARACTER|TASK:inventory]\"",
+        "player_visible": "\"You prepare to check your belongings."
+      }
+    },
+    {
+      "test_case": "I rest for the night",
+      "response": " You prepare to rest for the night. [ACTION:CHARACTER|TASK:rest|DURATION:night]",
+      "validation": {
+        "valid": true,
+        "action_type": "CHARACTER",
+        "response": " You prepare to rest for the night. [ACTION:CHARACTER|TASK:rest|DURATION:night]",
+        "player_visible": "You prepare to rest for the night."
+      }
+    },
+    {
+      "test_case": "I use a healing potion",
+      "response": " You prepare to use a healing potion. [ACTION:CHARACTER|TASK:use_potion|ITEM:healing_potion]",
+      "validation": {
+        "valid": true,
+        "action_type": "CHARACTER",
+        "response": " You prepare to use a healing potion. [ACTION:CHARACTER|TASK:use_potion|ITEM:healing_potion]",
+        "player_visible": "You prepare to use a healing potion."
+      }
+    },
+    {
+      "test_case": "I talk to the innkeeper",
+      "response": " You prepare to approach the innkeeper for conversation. [ACTION:NPC|TARGET:innkeeper|INTENT:conversation]",
+      "validation": {
+        "valid": true,
+        "action_type": "NPC",
+        "response": " You prepare to approach the innkeeper for conversation. [ACTION:NPC|TARGET:innkeeper|INTENT:conversation]",
+        "player_visible": "You prepare to approach the innkeeper for conversation."
+      }
+    },
+    {
+      "test_case": "I try to persuade the guard to let me pass",
+      "response": " You attempt to negotiate with the guard about letting you pass. [ACTION:NPC|TARGET:guard|INTENT:let_pass]",
+      "validation": {
+        "valid": true,
+        "action_type": "NPC",
+        "response": " You attempt to negotiate with the guard about letting you pass. [ACTION:NPC|TARGET:guard|INTENT:let_pass]",
+        "player_visible": "You attempt to negotiate with the guard about letting you pass."
+      }
+    },
+    {
+      "test_case": "I intimidate the merchant to lower his prices",
+      "response": " You attempt to intimidate the merchant to lower his prices. [ACTION:NPC|TARGET:merchant|INTENT:lower_prices]",
+      "validation": {
+        "valid": true,
+        "action_type": "NPC",
+        "response": " You attempt to intimidate the merchant to lower his prices. [ACTION:NPC|TARGET:merchant|INTENT:lower_prices]",
+        "player_visible": "You attempt to intimidate the merchant to lower his prices."
+      }
+    },
+    {
+      "test_case": "I climb the tower",
+      "response": " You prepare to begin climbing the tower. [ACTION:EXPLORE|LOCATION:tower|TASK:climb]",
+      "validation": {
+        "valid": true,
+        "action_type": "EXPLORE",
+        "response": " You prepare to begin climbing the tower. [ACTION:EXPLORE|LOCATION:tower|TASK:climb]",
+        "player_visible": "You prepare to begin climbing the tower."
+      }
+    },
+    {
+      "test_case": "I swim across the river",
+      "response": " You prepare to swim across the river. [ACTION:WORLD|OBJECT:river|TASK:swim]",
+      "validation": {
+        "valid": true,
+        "action_type": "WORLD",
+        "response": " You prepare to swim across the river. [ACTION:WORLD|OBJECT:river|TASK:swim]",
+        "player_visible": "You prepare to swim across the river."
+      }
+    },
+    {
+      "test_case": "I hide in the shadows",
+      "response": " \"You prepare to hide in the shadows. [ACTION:WORLD|OBJECT:shadows|TASK:hide]\"",
+      "validation": {
+        "valid": true,
+        "action_type": "WORLD",
+        "response": " \"You prepare to hide in the shadows. [ACTION:WORLD|OBJECT:shadows|TASK:hide]\"",
+        "player_visible": "\"You prepare to hide in the shadows."
+      }
+    }
+  ],
+  "timestamp": "2025-05-14T17:03:15.355642",
+  "prompt_file": "/mnt/network_repo/RPGer/App/backend/prompts/dma_tier1_prompt.txt"
+}

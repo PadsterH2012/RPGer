@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Flask-SocketIO Test Client</title>
+    <script src="https://cdn.socket.io/4.6.0/socket.io.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        #log {
+            height: 300px;
+            overflow-y: scroll;
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin-bottom: 20px;
+            background-color: #f9f9f9;
+        }
+        .event {
+            margin-bottom: 5px;
+            padding: 5px;
+            border-bottom: 1px solid #eee;
+        }
+        .sent {
+            color: blue;
+        }
+        .received {
+            color: green;
+        }
+        .error {
+            color: red;
+        }
+        button {
+            padding: 8px 16px;
+            margin-right: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <h1>Flask-SocketIO Test Client</h1>
+
+    <div id="connection-status">
+        Status: <span id="status">Disconnected</span>
+    </div>
+
+    <h2>Event Log</h2>
+    <div id="log"></div>
+
+    <h2>Actions</h2>
+    <div>
+        <button id="connect-btn">Connect</button>
+        <button id="disconnect-btn" disabled>Disconnect</button>
+        <button id="send-event-btn" disabled>Send Custom Event</button>
+    </div>
+
+    <script>
+        let socket;
+        const log = document.getElementById('log');
+        const statusSpan = document.getElementById('status');
+        const connectBtn = document.getElementById('connect-btn');
+        const disconnectBtn = document.getElementById('disconnect-btn');
+        const sendEventBtn = document.getElementById('send-event-btn');
+
+        function addToLog(message, type) {
+            const entry = document.createElement('div');
+            entry.className = `event ${type}`;
+            entry.textContent = `${new Date().toLocaleTimeString()} - ${message}`;
+            log.appendChild(entry);
+            log.scrollTop = log.scrollHeight;
+        }
+
+        function updateConnectionStatus(connected) {
+            if (connected) {
+                statusSpan.textContent = 'Connected';
+                statusSpan.style.color = 'green';
+                connectBtn.disabled = true;
+                disconnectBtn.disabled = false;
+                sendEventBtn.disabled = false;
+            } else {
+                statusSpan.textContent = 'Disconnected';
+                statusSpan.style.color = 'red';
+                connectBtn.disabled = false;
+                disconnectBtn.disabled = true;
+                sendEventBtn.disabled = true;
+            }
+        }
+
+        connectBtn.addEventListener('click', () => {
+            // Connect to the Socket.IO server
+            socket = io('http://localhost:5001');
+
+            // Connection event handlers
+            socket.on('connect', () => {
+                addToLog('Connected to server', 'received');
+                updateConnectionStatus(true);
+            });
+
+            socket.on('disconnect', () => {
+                addToLog('Disconnected from server', 'received');
+                updateConnectionStatus(false);
+            });
+
+            socket.on('connect_error', (error) => {
+                addToLog(`Connection error: ${error.message}`, 'error');
+            });
+
+            // Custom event handlers
+            socket.on('response', (data) => {
+                addToLog(`Received response: ${JSON.stringify(data)}`, 'received');
+            });
+
+            socket.on('state_change', (data) => {
+                addToLog(`State change: ${JSON.stringify(data)}`, 'received');
+            });
+
+            socket.on('game_state_update', (data) => {
+                addToLog(`Game state update: ${JSON.stringify(data)}`, 'received');
+            });
+        });
+
+        disconnectBtn.addEventListener('click', () => {
+            if (socket) {
+                socket.disconnect();
+                socket = null;
+            }
+        });
+
+        sendEventBtn.addEventListener('click', () => {
+            if (socket) {
+                const eventData = { message: 'Hello from test client', timestamp: new Date().toISOString() };
+                socket.emit('my_event', eventData);
+                addToLog(`Sent event: ${JSON.stringify(eventData)}`, 'sent');
+            }
+        });
+    </script>
+</body>
+</html>

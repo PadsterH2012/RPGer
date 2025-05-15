@@ -1,0 +1,129 @@
+# RPGer Dashboard Client
+
+This is the client-side application for the RPGer Dashboard, built with React, TypeScript, and Socket.IO.
+
+## Project Structure
+
+```
+client/
+├── public/                # Public assets
+├── src/                   # Source code
+│   ├── components/        # React components
+│   │   ├── widgets/       # Widget components
+│   │   │   ├── PlayerStatsWidget.tsx     # Player stats widget
+│   │   │   ├── EnvironmentWidget.tsx     # Environment widget
+│   │   │   ├── ActionResultsWidget.tsx   # Action results widget
+│   │   │   ├── DungeonMasterWidget.tsx   # Dungeon master widget
+│   │   │   └── AgentDebugWidget.tsx      # Agent debug widget
+│   │   ├── Dashboard.tsx  # Main Dashboard component
+│   │   └── SettingsPanel.tsx # Settings panel component
+│   ├── layouts/           # Layout components
+│   │   └── DashboardLayout.tsx # Grid layout component
+│   ├── context/           # React context providers
+│   │   └── SocketContext.tsx # Socket.IO context
+│   ├── services/          # Service modules
+│   │   └── socketService.ts # Socket.IO service
+│   ├── styles/            # CSS files
+│   │   ├── widgets/       # Widget-specific styles
+│   │   ├── Dashboard.css  # Dashboard styles
+│   │   ├── DashboardLayout.css # Layout styles
+│   │   └── SettingsPanel.css # Settings panel styles
+│   ├── App.tsx            # Main App component
+│   └── index.tsx          # Entry point
+├── package.json           # Dependencies
+└── tsconfig.json          # TypeScript configuration
+```
+
+## Components
+
+### Dashboard
+
+The main dashboard component that contains the DashboardLayout and SettingsPanel.
+
+### DashboardLayout
+
+A grid layout component that uses React Grid Layout to provide a drag-and-drop interface for widgets.
+
+### SettingsPanel
+
+A settings panel that allows users to customize the dashboard theme, animation settings, and layout.
+
+### Widgets
+
+#### PlayerStatsWidget
+
+Displays the player's stats, inventory, and abilities. Features:
+- Tabs for Stats, Inventory, and Abilities
+- HP and XP bars with color-coded indicators
+- Ability scores with modifiers
+- Equipment list
+- Class-specific abilities
+
+#### EnvironmentWidget
+
+Displays information about the current environment. Features:
+- Location, time, and weather information
+- Environment description
+- Danger level and visibility indicators
+
+#### ActionResultsWidget
+
+Displays the results of player actions. Features:
+- Color-coded action types (attack, skill, save, spell, other)
+- Timestamp for each action
+- Scrollable history of recent actions
+
+#### DungeonMasterWidget
+
+Displays messages from the Dungeon Master. Features:
+- Message fade-out animations
+- Only the last 2 messages are visible
+- Input field for player responses
+
+#### AgentDebugWidget
+
+Displays debug messages from the game agents. Features:
+- Expandable/collapsible debug window
+- Filter by agent or message level
+- Color-coded message levels (info, warning, error, success)
+
+## Context
+
+### SocketContext
+
+Provides Socket.IO connection and event handlers for all components.
+
+## Services
+
+### socketService
+
+Handles Socket.IO connection and events.
+
+## Styles
+
+CSS files for each component, with a focus on responsive design and customization.
+
+## Getting Started
+
+1. Install dependencies:
+   ```bash
+   npm install
+   ```
+
+2. Start the development server:
+   ```bash
+   npm start
+   ```
+
+3. Open http://localhost:3000 in your browser.
+
+## Integration with Backend
+
+The dashboard connects to the backend via Socket.IO. The connection is configured in `src/services/socketService.ts`.
+
+## Customization
+
+Users can customize the dashboard through the Settings panel:
+- Theme customization (colors, fonts, etc.)
+- Animation settings (speed, enable/disable)
+- Layout customization (widget visibility, layout presets)

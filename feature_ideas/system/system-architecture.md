@@ -6,13 +6,15 @@ This document outlines the comprehensive architecture for the RPGer system, focu
 
 ## Database Architecture
 
+> **Note**: This section provides a high-level overview of the database architecture. For detailed implementation information, see [Database Stack Architecture](../database/database-stack-architecture.md). For comprehensive schema documentation, see [Database Schema Overview](../database/database-schema-overview.md).
+
 ### Core Components
 
 1. **Permanent Database Stack**
-   - MongoDB for structured data and document storage
-   - Chroma for vector embeddings and semantic search
-   - Redis for caching and real-time data access
-   - Deployed as separate containers with persistent storage
+   - **MongoDB**: Primary database for structured data and document storage
+   - **Chroma**: Vector database for embeddings and semantic search capabilities
+   - **Redis**: In-memory database for caching and real-time data access
+   - All deployed as separate containers with persistent storage
 
 2. **Data Persistence Strategy**
    - Docker volumes for all database containers
