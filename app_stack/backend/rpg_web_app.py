@@ -487,26 +487,55 @@ def api_status():
         # Check MongoDB connection
         try:
             # Try multiple connection strings to handle different environments
+            # Order from most likely to work in various environments
             connection_strings = [
+                # Docker internal networking - when backend runs in container
                 os.environ.get('MONGODB_URI', "mongodb://admin:password@mongodb:27017/rpger?authSource=admin"),
+                # Local development - with auth
                 "mongodb://admin:password@localhost:27017/rpger?authSource=admin",
-                "mongodb://localhost:27017/rpger"
+                # Try different port in case of port mapping
+                "mongodb://admin:password@localhost:27018/rpger?authSource=admin",
+                # Try without auth for simple installations
+                "mongodb://localhost:27017/rpger",
+                # Try with IP address for hosts that might have DNS issues
+                "mongodb://admin:password@127.0.0.1:27017/rpger?authSource=admin",
+                # Try Docker host special DNS name
+                "mongodb://admin:password@host.docker.internal:27017/rpger?authSource=admin"
             ]
 
             connected = False
             for uri in connection_strings:
                 try:
-                    logger.info(f"Attempting to connect to MongoDB with URI: {uri.split('@')[-1]}")
-                    mongo_client = pymongo.MongoClient(uri, serverSelectionTimeoutMS=2000)
+                    # Mask password in logs but keep connection details
+                    masked_uri = uri
+                    if '@' in uri:
+                        prefix = uri.split('@')[0]
+                        suffix = uri.split('@')[1]
+                        if ':' in prefix:
+                            masked_uri = f"{prefix.split(':')[0]}:***@{suffix}"
+                    
+                    logger.info(f"Attempting to connect to MongoDB with URI: {masked_uri}")
+                    # Increase timeout and add more connection options for reliability
+                    mongo_client = pymongo.MongoClient(
+                        uri,
+                        serverSelectionTimeoutMS=5000,  # Increased timeout
+                        connectTimeoutMS=5000,
+                        socketTimeoutMS=5000,
+                        # These options help with connection stability
+                        retryWrites=True,
+                        retryReads=True
+                    )
                     mongo_client.server_info()  # Will raise exception if cannot connect
                     db = mongo_client["rpger"]
                     connected = True
-                    logger.info(f"Successfully connected to MongoDB at {uri.split('@')[-1]}")
+                    logger.info(f"Successfully connected to MongoDB at {masked_uri}")
                     break
                 except Exception as e:
-                    logger.warning(f"Failed to connect to MongoDB at {uri.split('@')[-1]}: {e}")
+                    logger.warning(f"Failed to connect to MongoDB at {masked_uri}: {e}")
 
             if not connected:
+                logger.error("All MongoDB connection attempts failed. Please check that MongoDB is running and accessible.")
+                raise Exception("All MongoDB connection attempts failed")
                 raise Exception("All MongoDB connection attempts failed")
 
             # Get collections
