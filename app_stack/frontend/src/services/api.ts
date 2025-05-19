@@ -6,7 +6,14 @@
 import axios from 'axios';
 
 // Get the API URL from environment variables or use default
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001';
+let API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5002';
+
+// If we're running in a browser and the URL contains 'rpger-backend', replace it with 'localhost'
+if (typeof window !== 'undefined' && API_URL.includes('rpger-backend')) {
+  API_URL = API_URL.replace('rpger-backend', 'localhost');
+}
+
+console.log('API Service initialized with URL:', API_URL);
 
 // Create axios instance with custom config
 const api = axios.create({

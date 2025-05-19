@@ -1,6 +1,27 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useSocket } from '../../context/SocketContext';
+import { useTheme } from '../../context/ThemeContext';
+import styled from 'styled-components';
+import ConnectionStatusIndicator from '../common/ConnectionStatusIndicator';
 import '../../styles/widgets/DungeonMasterWidget.css';
+
+// Widget header
+const WidgetHeader = styled.div<{ theme: string }>`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  background-color: var(--${props => props.theme}-widget-header-bg);
+  border-bottom: 1px solid var(--${props => props.theme}-border);
+`;
+
+// Widget title
+const WidgetTitle = styled.h3<{ theme: string }>`
+  margin: 0;
+  color: var(--${props => props.theme}-text-primary);
+  font-size: var(--font-size-md);
+  font-weight: 600;
+`;
 
 // Define DM message type
 interface DMMessage {
@@ -18,6 +39,7 @@ interface GameState {
 
 const DungeonMasterWidget: React.FC = () => {
   const { socket, isConnected } = useSocket();
+  const { theme } = useTheme();
   const [messages, setMessages] = useState<DMMessage[]>([]);
   const [inputValue, setInputValue] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -159,6 +181,42 @@ const DungeonMasterWidget: React.FC = () => {
 
   return (
     <div className="dungeon-master-widget">
+      <WidgetHeader theme={theme}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <WidgetTitle theme={theme}>Dungeon Master</WidgetTitle>
+          <ConnectionStatusIndicator
+            services={['backend']}
+            size="small"
+            horizontal={true}
+            refreshInterval={15000}
+          />
+        </div>
+        <div>
+          {!gameStarted && (
+            <button
+              onClick={() => {
+                if (socket && isConnected) {
+                  socket.emit('start_game');
+                  setGameStarted(true);
+                }
+              }}
+              style={{
+                padding: '4px 8px',
+                backgroundColor: '#3700b3',
+                color: 'white',
+                border: 'none',
+                borderRadius: '4px',
+                cursor: 'pointer',
+                fontSize: '12px',
+                fontWeight: 'bold'
+              }}
+            >
+              Start Game
+            </button>
+          )}
+        </div>
+      </WidgetHeader>
+
       <div className="dm-messages">
         {messages.map(message => (
           <div

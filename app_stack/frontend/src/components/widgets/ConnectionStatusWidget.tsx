@@ -1,5 +1,26 @@
 import React, { useState, useEffect } from 'react';
+import { useTheme } from '../../context/ThemeContext';
+import styled from 'styled-components';
+import ConnectionStatusIndicator from '../common/ConnectionStatusIndicator';
 import '../../styles/widgets/ConnectionStatusWidget.css';
+
+// Widget header
+const WidgetHeader = styled.div<{ theme: string }>`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  background-color: var(--${props => props.theme}-widget-header-bg);
+  border-bottom: 1px solid var(--${props => props.theme}-border);
+`;
+
+// Widget title
+const WidgetTitle = styled.h3<{ theme: string }>`
+  margin: 0;
+  color: var(--${props => props.theme}-text-primary);
+  font-size: var(--font-size-md);
+  font-weight: 600;
+`;
 
 // Connection status types: connected, disconnected, connecting
 type ConnectionState = 'connected' | 'disconnected' | 'connecting';
@@ -13,11 +34,15 @@ interface ConnectionStatus {
 
 interface ServiceStats {
   mongoDbCollections: number;
+  mongoDbCollectionNames: string[];
   mongoDbName: string;
   mongoDbSize: string;
+  mongoDbMonsterCount: number;
   redisUsage: string;
   redisKeys: number;
+  redisKeyTypes: { [key: string]: number };
   chromaCollections: number;
+  chromaCollectionNames: string[];
   chromaEmbeddings: number;
   chromaVersion: string;
 }
@@ -27,18 +52,22 @@ interface FlaskStatusResponse {
   mongodb: {
     connected: boolean;
     collections: number;
+    collectionNames: string[];
     databaseName: string;
     databaseSize: string;
+    monsterCount: number;
   };
   redis: {
     connected: boolean;
     usedMemory: string;
     totalKeys: number;
+    keyTypes: { [key: string]: number };
     uptime: number;
   };
   chroma: {
     connected: boolean;
     collections: number;
+    collectionNames: string[];
     embeddings: number;
     version: string;
   };
@@ -49,6 +78,7 @@ interface FlaskStatusResponse {
 }
 
 const ConnectionStatusWidget: React.FC = () => {
+  const { theme } = useTheme();
   const [status, setStatus] = useState<ConnectionStatus>({
     mongodb: 'disconnected',
     redis: 'disconnected',
@@ -58,11 +88,15 @@ const ConnectionStatusWidget: React.FC = () => {
 
   const [stats, setStats] = useState<ServiceStats>({
     mongoDbCollections: 0,
+    mongoDbCollectionNames: [],
     mongoDbName: '',
     mongoDbSize: '0 MB',
+    mongoDbMonsterCount: 0,
     redisUsage: '0 MB',
     redisKeys: 0,
+    redisKeyTypes: {},
     chromaCollections: 0,
+    chromaCollectionNames: [],
     chromaEmbeddings: 0,
     chromaVersion: ''
   });
@@ -104,11 +138,15 @@ const ConnectionStatusWidget: React.FC = () => {
         // Update stats
         setStats({
           mongoDbCollections: data.mongodb.collections,
+          mongoDbCollectionNames: data.mongodb.collectionNames || [],
           mongoDbName: data.mongodb.databaseName,
           mongoDbSize: data.mongodb.databaseSize,
+          mongoDbMonsterCount: data.mongodb.monsterCount || 0,
           redisUsage: data.redis.usedMemory,
           redisKeys: data.redis.totalKeys,
+          redisKeyTypes: data.redis.keyTypes || {},
           chromaCollections: data.chroma.collections,
+          chromaCollectionNames: data.chroma.collectionNames || [],
           chromaEmbeddings: data.chroma.embeddings,
           chromaVersion: data.chroma.version
         });
@@ -180,8 +218,16 @@ const ConnectionStatusWidget: React.FC = () => {
 
   return (
     <div className="widget connection-status-widget">
-      <div className="widget-header">
-        <h3>Connection Status</h3>
+      <WidgetHeader theme={theme}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <WidgetTitle theme={theme}>Connection Status</WidgetTitle>
+          <ConnectionStatusIndicator
+            services={['backend']}
+            size="small"
+            horizontal={true}
+            refreshInterval={15000}
+          />
+        </div>
         <button
           className="refresh-button"
           onClick={checkConnections}
@@ -189,7 +235,7 @@ const ConnectionStatusWidget: React.FC = () => {
         >
           {isChecking ? 'Checking...' : 'Refresh'}
         </button>
-      </div>
+      </WidgetHeader>
       <div className="widget-content">
         <div className="connection-boxes">
           <div className="connection-box">
@@ -200,11 +246,24 @@ const ConnectionStatusWidget: React.FC = () => {
               {status.mongodb === 'connected' && (
                 <div className="stats-details">
                   <span className="stats-text">Collections: {stats.mongoDbCollections}</span>
+                  {stats.mongoDbMonsterCount > 0 && (
+                    <span className="stats-text-small highlight">Monsters: {stats.mongoDbMonsterCount}</span>
+                  )}
                   {stats.mongoDbName && (
                     <span className="stats-text-small">DB: {stats.mongoDbName}</span>
                   )}
                   {stats.mongoDbSize && (
                     <span className="stats-text-small">Size: {stats.mongoDbSize}</span>
+                  )}
+                  {stats.mongoDbCollectionNames && stats.mongoDbCollectionNames.length > 0 && (
+                    <div className="collection-details">
+                      <span className="stats-text-small collection-title">Collection Names:</span>
+                      <div className="collection-list">
+                        {stats.mongoDbCollectionNames.map((name, index) => (
+                          <span key={index} className="collection-name">{name}</span>
+                        ))}
+                      </div>
+                    </div>
                   )}
                 </div>
               )}
@@ -223,6 +282,16 @@ const ConnectionStatusWidget: React.FC = () => {
                 <div className="stats-details">
                   <span className="stats-text">Memory: {stats.redisUsage}</span>
                   <span className="stats-text-small">Keys: {stats.redisKeys}</span>
+                  {Object.keys(stats.redisKeyTypes).length > 0 && (
+                    <div className="collection-details">
+                      <span className="stats-text-small collection-title">Key Types:</span>
+                      <div className="collection-list">
+                        {Object.entries(stats.redisKeyTypes).map(([type, count], index) => (
+                          <span key={index} className="collection-name">{type}: {count}</span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
               {status.redis === 'connecting' && (
@@ -242,6 +311,16 @@ const ConnectionStatusWidget: React.FC = () => {
                   <span className="stats-text-small">Embeddings: {stats.chromaEmbeddings}</span>
                   {stats.chromaVersion && (
                     <span className="stats-text-small">Version: {stats.chromaVersion}</span>
+                  )}
+                  {stats.chromaCollectionNames && stats.chromaCollectionNames.length > 0 && (
+                    <div className="collection-details">
+                      <span className="stats-text-small collection-title">Collection Names:</span>
+                      <div className="collection-list">
+                        {stats.chromaCollectionNames.map((name, index) => (
+                          <span key={index} className="collection-name">{name}</span>
+                        ))}
+                      </div>
+                    </div>
                   )}
                 </div>
               )}

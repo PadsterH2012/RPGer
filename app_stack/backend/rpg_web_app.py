@@ -7,6 +7,9 @@ from flask import Flask, request, jsonify, Response, stream_with_context
 from flask_socketio import SocketIO, emit
 from flask_cors import CORS
 import logging
+import pymongo
+from routes.collections import collections_bp
+from routes.performance import performance_bp
 
 # Set up logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -59,9 +62,27 @@ except ImportError:
 # Initialize Flask app
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret!'
-# Enable CORS for all routes and origins
-CORS(app, resources={r"/*": {"origins": "*"}}, supports_credentials=True)
-socketio = SocketIO(app, cors_allowed_origins="*", logger=True, engineio_logger=True)
+# Enable CORS for all routes and origins with more permissive settings
+CORS(app,
+     resources={r"/*": {"origins": "*"}},
+     supports_credentials=True,
+     allow_headers=["Content-Type", "Authorization", "X-Requested-With", "Accept", "Origin"],
+     methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"])
+
+# Configure Socket.IO with explicit CORS settings and more debugging
+socketio = SocketIO(
+    app,
+    cors_allowed_origins=["http://localhost:3000", "http://localhost:3001", "http://localhost:3002", "http://localhost:5000", "*"],
+    logger=True,
+    engineio_logger=True,
+    ping_timeout=60,
+    ping_interval=25,
+    async_mode='eventlet'  # Explicitly set async mode
+)
+
+# Register blueprints
+app.register_blueprint(collections_bp, url_prefix='/api/collections')
+app.register_blueprint(performance_bp, url_prefix='/api/performance')
 
 # Create a queue for player inputs
 player_input_queue = queue.Queue()
@@ -465,16 +486,35 @@ def api_status():
 
         # Check MongoDB connection
         try:
-            mongodb_uri = os.environ.get('MONGODB_URI', "mongodb://admin:password@mongodb:27017/rpger?authSource=admin")
-            mongo_client = pymongo.MongoClient(mongodb_uri, serverSelectionTimeoutMS=2000)
-            mongo_client.server_info()  # Will raise exception if cannot connect
-            db = mongo_client["rpger"]
+            # Try multiple connection strings to handle different environments
+            connection_strings = [
+                os.environ.get('MONGODB_URI', "mongodb://admin:password@mongodb:27017/rpger?authSource=admin"),
+                "mongodb://admin:password@localhost:27017/rpger?authSource=admin",
+                "mongodb://localhost:27017/rpger"
+            ]
+
+            connected = False
+            for uri in connection_strings:
+                try:
+                    logger.info(f"Attempting to connect to MongoDB with URI: {uri.split('@')[-1]}")
+                    mongo_client = pymongo.MongoClient(uri, serverSelectionTimeoutMS=2000)
+                    mongo_client.server_info()  # Will raise exception if cannot connect
+                    db = mongo_client["rpger"]
+                    connected = True
+                    logger.info(f"Successfully connected to MongoDB at {uri.split('@')[-1]}")
+                    break
+                except Exception as e:
+                    logger.warning(f"Failed to connect to MongoDB at {uri.split('@')[-1]}: {e}")
+
+            if not connected:
+                raise Exception("All MongoDB connection attempts failed")
 
             # Get collections
             collections = db.list_collection_names()
 
             status["mongodb"]["connected"] = True
             status["mongodb"]["collections"] = len(collections)
+            status["mongodb"]["collectionNames"] = collections
             status["mongodb"]["databaseName"] = "rpger"
 
             # Estimate database size (this is approximate)
@@ -482,7 +522,14 @@ def api_status():
             size_mb = round(db_stats.get("storageSize", 0) / (1024 * 1024), 2)
             status["mongodb"]["databaseSize"] = f"{size_mb} MB"
 
+            # Get monster count
+            monster_count = db.monsters.count_documents({})
+            status["mongodb"]["monsterCount"] = monster_count
+            logger.info(f"Found {monster_count} monsters in MongoDB")
+
         except Exception as e:
+            # Explicitly set connected to False on any error
+            status["mongodb"]["connected"] = False
             logger.error(f"MongoDB connection error: {e}")
 
         # Check Redis connection
@@ -499,7 +546,16 @@ def api_status():
 
                 # Get total keys
                 status["redis"]["totalKeys"] = redis_client.dbsize()
+
+                # Get key types
+                key_types = {}
+                for key in redis_client.scan_iter("*"):
+                    key_type = redis_client.type(key).decode('utf-8')
+                    key_types[key_type] = key_types.get(key_type, 0) + 1
+                status["redis"]["keyTypes"] = key_types
         except Exception as e:
+            # Explicitly set connected to False on any error
+            status["redis"]["connected"] = False
             logger.error(f"Redis connection error: {e}")
 
         # Check Chroma connection
@@ -518,6 +574,13 @@ def api_status():
                         collections_data = collections_response.json()
                         status["chroma"]["collections"] = len(collections_data)
 
+                        # Extract collection names
+                        collection_names = []
+                        for collection in collections_data:
+                            if collection.get("name"):
+                                collection_names.append(collection.get("name"))
+                        status["chroma"]["collectionNames"] = collection_names
+
                         # Count total embeddings across all collections
                         total_embeddings = 0
                         for collection in collections_data:
@@ -534,7 +597,12 @@ def api_status():
                         status["chroma"]["embeddings"] = total_embeddings
                 except Exception as e:
                     logger.error(f"Error getting Chroma collections: {e}")
+                    status["chroma"]["collections"] = 0
+                    status["chroma"]["collectionNames"] = []
+                    status["chroma"]["embeddings"] = 0
         except Exception as e:
+            # Explicitly set connected to False on any error
+            status["chroma"]["connected"] = False
             logger.error(f"Chroma connection error: {e}")
 
         return jsonify(status)

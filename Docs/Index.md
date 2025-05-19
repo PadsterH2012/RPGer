@@ -11,6 +11,7 @@ Documentation is organized in a hierarchical structure by system component.
 - [Agent Debug Widget](Frontend/Components/AgentDebugWidget.md) - Real-time debugging interface connected to backend Python logic
 - [Connection Status Widget](Frontend/Components/ConnectionStatusWidget.md) - Widget displaying connection status of MongoDB, Redis, and Socket.IO services
 - [Connection Status Widget Update](Frontend/Components/ConnectionStatusWidget-Update.md) - Updated connection status widget with Chroma vector database support
+- [Connection Status Indicator](Frontend/Components/ConnectionStatusIndicator.md) - Reusable component for displaying connection status indicators across widgets
 
 ### Socket.IO
 - [Socket Context](Frontend/Socket.IO/SocketContext.md) - Socket.IO context and hooks for real-time communication

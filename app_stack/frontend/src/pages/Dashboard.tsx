@@ -16,6 +16,7 @@ import TextWidget from '../components/widgets/TextWidget';
 import TableWidget from '../components/widgets/TableWidget';
 import ClockWidget from '../components/widgets/ClockWidget';
 import CountdownWidget from '../components/widgets/CountdownWidget';
+import MongoDBViewerWidget from '../components/widgets/MongoDBViewerWidget';
 
 // Enable responsive features
 const ResponsiveGridLayout = WidthProvider(Responsive);
@@ -218,6 +219,7 @@ const widgetComponents: Record<string, React.FC<any>> = {
   table: TableWidget,
   clock: ClockWidget,
   countdown: CountdownWidget,
+  mongodbViewer: MongoDBViewerWidget,
 };
 
 // Define widget titles
@@ -230,6 +232,7 @@ const widgetTitles: Record<string, string> = {
   table: 'Table',
   clock: 'Clock',
   countdown: 'Countdown',
+  mongodbViewer: 'MongoDB Viewer',
 };
 
 const Dashboard: React.FC = () => {

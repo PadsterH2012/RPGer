@@ -1,0 +1,113 @@
+{
+  "name": "mongodb-mcp-server",
+  "description": "MongoDB Connection and Query MCP Server for RPGer",
+  "version": "1.0.0",
+  "type": "local",
+  "executable": "node",
+  "script": "index.js",
+  "tools": {
+    "connect": {
+      "description": "Establish a connection to the MongoDB database",
+      "parameters": {}
+    },
+    "list_databases": {
+      "description": "List all available databases",
+      "parameters": {}
+    },
+    "list_collections": {
+      "description": "List collections in a specific database",
+      "parameters": {
+        "dbName": {
+          "type": "string",
+          "description": "Name of the database to list collections from",
+          "default": "rpger"
+        }
+      }
+    },
+    "list_documents": {
+      "description": "List documents in a specific collection",
+      "parameters": {
+        "collectionName": {
+          "type": "string",
+          "description": "Name of the collection to query",
+          "required": true
+        },
+        "query": {
+          "type": "object",
+          "description": "MongoDB query object",
+          "default": {}
+        },
+        "limit": {
+          "type": "number",
+          "description": "Maximum number of documents to return",
+          "default": 100
+        }
+      }
+    },
+    "create_document": {
+      "description": "Create a new document in a specific collection",
+      "parameters": {
+        "collectionName": {
+          "type": "string",
+          "description": "Name of the collection to insert document into",
+          "required": true
+        },
+        "document": {
+          "type": "object",
+          "description": "Document to be inserted",
+          "required": true
+        }
+      }
+    },
+    "update_document": {
+      "description": "Update an existing document in a collection",
+      "parameters": {
+        "collectionName": {
+          "type": "string",
+          "description": "Name of the collection containing the document",
+          "required": true
+        },
+        "filter": {
+          "type": "object",
+          "description": "Query to find the document to update",
+          "required": true
+        },
+        "update": {
+          "type": "object",
+          "description": "Updates to apply to the document",
+          "required": true
+        }
+      }
+    },
+    "delete_document": {
+      "description": "Delete a document from a collection",
+      "parameters": {
+        "collectionName": {
+          "type": "string",
+          "description": "Name of the collection containing the document",
+          "required": true
+        },
+        "filter": {
+          "type": "object",
+          "description": "Query to find the document to delete",
+          "required": true
+        }
+      }
+    },
+    "find_document_by_id": {
+      "description": "Find a specific document by its ID",
+      "parameters": {
+        "collectionName": {
+          "type": "string",
+          "description": "Name of the collection containing the document",
+          "required": true
+        },
+        "id": {
+          "type": "string",
+          "description": "Unique identifier of the document",
+          "required": true
+        }
+      }
+    }
+  }
+}

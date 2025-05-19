@@ -1,0 +1,73 @@
+[
+  {
+    "name": "BABOON",
+    "category": "Monstrosity",
+    "description": "Baboons are basically herbivorous, group animals. The tribe will be led by 2-8 large males (+1 hit point damage on attacks). Half of the tribe will be young which will not Attack. If the home territory of a tribe is invaded the baboons will attempt to drive the invaders off, but it is 90% likely that the tribe will flee if faced by determined resistance.",
+    "stats": {
+      "frequency": "Common",
+      "no_appearing": "10-40",
+      "armor_class": 7,
+      "move": "12\"",
+      "hit_dice": "1+1",
+      "hit_points": 5,
+      "treasure_type": "Nil",
+      "no_of_attacks": "1",
+      "damage_attack": "1-4",
+      "percent_in_lair": "Nil"
+    },
+    "path": "/mnt/network_repo/RPGer/reference/Monster_Manual_1/B/Baboon.md",
+    "metadata": {
+      "source": "Monster Manual 1",
+      "type": "Monster",
+      "alignment": "Neutral",
+      "size": "S (4'+ tall)",
+      "intelligence": "Low",
+      "psionic_ability": "Nil",
+      "attack_defense_modes": "Nil",
+      "tags": [
+        "Neutral",
+        "Size-S"
+      ]
+    },
+    "habitat": {
+      "primary_environments": [],
+      "terrain_preferences": [],
+      "climate_preferences": [],
+      "regional_distribution": [],
+      "specific_locations": [],
+      "migration_patterns": "",
+      "lair_description": ""
+    },
+    "ecology": {
+      "diet": "",
+      "predators": [],
+      "prey": [],
+      "behavior": "Behavior information not explicitly stated in the description.",
+      "lifecycle": "",
+      "socialization": "animals",
+      "interaction_with_civilization": ""
+    },
+    "embedding_references": [],
+    "related_monsters": [],
+    "encounter_suggestions": [],
+    "campaign_usage": {
+      "plot_hooks": [],
+      "regional_variants": []
+    },
+    "extended_properties": {
+      "legendary_actions": [],
+      "lair_actions": [],
+      "regional_effects": [],
+      "custom_abilities": []
+    },
+    "created_at": "2025-05-15T23:39:01.432359+00:00",
+    "updated_at": "2025-05-15T23:39:01.432365+00:00",
+    "abilities": [
+      {
+        "name": "Special Defense",
+        "description": "Climbing",
+        "type": "defense"
+      }
+    ]
+  }
+]

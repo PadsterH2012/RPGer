@@ -17,6 +17,8 @@ import './components/widgets/TextWidget';
 import './components/widgets/TableWidget';
 import './components/widgets/ClockWidget';
 import './components/widgets/CountdownWidget';
+import './components/widgets/MongoDBViewerWidgetRegistration';
+import './components/widgets/PerformanceMonitorWidgetRegistration';
 
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement

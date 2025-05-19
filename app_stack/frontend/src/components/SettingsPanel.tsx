@@ -23,6 +23,7 @@ interface WidgetSettings {
   dungeonMaster: boolean;
   agentDebug: boolean;
   connectionStatus: boolean;
+  mongodbViewer: boolean;
 }
 
 interface LayoutSettings {
@@ -143,6 +144,7 @@ const defaultSettings: Settings = {
     dungeonMaster: true,
     agentDebug: true,
     connectionStatus: true,
+    mongodbViewer: true,
   },
   layout: {
     name: 'Default',
@@ -266,6 +268,8 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose, onApplyS
         actionResults: true,
         dungeonMaster: true,
         agentDebug: true,
+        connectionStatus: true,
+        mongodbViewer: true,
       };
 
       return {
@@ -405,7 +409,9 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose, onApplyS
         <div className="settings-content">
           {activeTab === 'theme' && (
             <div className="theme-settings">
-              <h3 className="theme-settings-heading">Theme Settings</h3>
+              <div className="theme-header-section">
+                <h3 className="theme-settings-heading">Theme Settings</h3>
+              </div>
 
               <div className="setting-group preset-theme-group">
                 <div className="preset-theme-label">Preset Themes:</div>
@@ -607,8 +613,10 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose, onApplyS
 
           {activeTab === 'widgets' && (
             <div className="widgets-settings">
-              <h3>Widget Management</h3>
-              <p>Select which widgets to display on the dashboard:</p>
+              <div className="widget-header-section">
+                <h3>Widget Management</h3>
+                <p>Select which widgets to display on the dashboard:</p>
+              </div>
 
               <div className="widget-item">
                 <label className="widget-label">
@@ -680,6 +688,18 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose, onApplyS
                   <span className="widget-name">Connection Status</span>
                 </label>
                 <div className="widget-color" style={{ backgroundColor: '#6366f1' }}></div>
+              </div>
+
+              <div className="widget-item">
+                <label className="widget-label">
+                  <input
+                    type="checkbox"
+                    checked={settings.widgets?.mongodbViewer ?? true}
+                    onChange={(e) => handleWidgetSettingChange('mongodbViewer', e.target.checked)}
+                  />
+                  <span className="widget-name">MongoDB Viewer</span>
+                </label>
+                <div className="widget-color" style={{ backgroundColor: '#0ea5e9' }}></div>
               </div>
 
               <div className="widget-help">

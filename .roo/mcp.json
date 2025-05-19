@@ -1,0 +1,16 @@
+{
+  "mcpServers": {
+    "MongoDB": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "mongodb-mcp-server"
+      ],
+      "env": {
+        "MDB_MCP_CONNECTION_STRING": "mongodb+srv://admin:rpger@localhost:27017/rpger"
+      },
+      "disabled": true,
+      "alwaysAllow": []
+    }
+  }
+}

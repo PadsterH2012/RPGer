@@ -1,0 +1,11 @@
+{
+  "name": "rpger-mongodb-mcp-server",
+  "version": "1.0.0",
+  "type": "module",
+  "dependencies": {
+    "mongodb": "^6.3.0"
+  },
+  "scripts": {
+    "start": "node index.js"
+  }
+}

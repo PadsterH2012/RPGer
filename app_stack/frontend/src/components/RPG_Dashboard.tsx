@@ -11,6 +11,7 @@ import ActionResultsWidget from './widgets/ActionResultsWidget';
 import DungeonMasterWidget from './widgets/DungeonMasterWidget';
 import AgentDebugWidget from './widgets/AgentDebugWidget';
 import ConnectionStatusWidget from './widgets/ConnectionStatusWidget';
+import MongoDBViewerWidget from './widgets/MongoDBViewerWidget';
 
 // Import settings panel
 import SettingsPanel from './SettingsPanel';
@@ -27,6 +28,7 @@ interface WidgetVisibility {
   dungeonMaster: boolean;
   agentDebug: boolean;
   connectionStatus: boolean;
+  mongodbViewer: boolean;
 }
 
 const RPG_Dashboard: React.FC = () => {
@@ -42,6 +44,7 @@ const RPG_Dashboard: React.FC = () => {
     dungeonMaster: true,
     agentDebug: true,
     connectionStatus: true,
+    mongodbViewer: true,
   });
 
   // Load layouts and widget visibility from localStorage and server on mount
@@ -97,6 +100,7 @@ const RPG_Dashboard: React.FC = () => {
       { i: 'dungeonMaster', x: 0, y: 8, w: 6, h: 6, minW: 3, minH: 4 },
       { i: 'agentDebug', x: 6, y: 8, w: 6, h: 6, minW: 3, minH: 4 },
       { i: 'connectionStatus', x: 0, y: 14, w: 4, h: 4, minW: 3, minH: 3 },
+      { i: 'mongodbViewer', x: 4, y: 14, w: 8, h: 8, minW: 4, minH: 6 },
     ],
     md: [
       { i: 'playerStats', x: 0, y: 0, w: 6, h: 8, minW: 3, minH: 4 },
@@ -105,6 +109,7 @@ const RPG_Dashboard: React.FC = () => {
       { i: 'dungeonMaster', x: 0, y: 8, w: 6, h: 6, minW: 3, minH: 4 },
       { i: 'agentDebug', x: 6, y: 8, w: 6, h: 6, minW: 3, minH: 4 },
       { i: 'connectionStatus', x: 0, y: 14, w: 4, h: 4, minW: 3, minH: 3 },
+      { i: 'mongodbViewer', x: 4, y: 14, w: 8, h: 8, minW: 4, minH: 6 },
     ],
     sm: [
       { i: 'playerStats', x: 0, y: 0, w: 6, h: 6, minW: 3, minH: 4 },
@@ -113,6 +118,7 @@ const RPG_Dashboard: React.FC = () => {
       { i: 'dungeonMaster', x: 0, y: 14, w: 6, h: 6, minW: 3, minH: 4 },
       { i: 'agentDebug', x: 0, y: 20, w: 6, h: 6, minW: 3, minH: 4 },
       { i: 'connectionStatus', x: 0, y: 26, w: 6, h: 4, minW: 3, minH: 3 },
+      { i: 'mongodbViewer', x: 0, y: 30, w: 6, h: 8, minW: 4, minH: 6 },
     ],
   };
 
@@ -155,6 +161,7 @@ const RPG_Dashboard: React.FC = () => {
         dungeonMaster: settings.widgets.dungeonMaster,
         agentDebug: settings.widgets.agentDebug,
         connectionStatus: settings.widgets.connectionStatus ?? true,
+        mongodbViewer: settings.widgets.mongodbViewer ?? true,
       };
 
       setWidgetVisibility(newWidgetVisibility);
@@ -302,6 +309,13 @@ const RPG_Dashboard: React.FC = () => {
         {widgetVisibility.connectionStatus && (
           <div key="connectionStatus">
             <ConnectionStatusWidget />
+          </div>
+        )}
+
+        {/* MongoDB Viewer Widget */}
+        {widgetVisibility.mongodbViewer && (
+          <div key="mongodbViewer">
+            <MongoDBViewerWidget />
           </div>
         )}
       </ResponsiveGridLayout>
