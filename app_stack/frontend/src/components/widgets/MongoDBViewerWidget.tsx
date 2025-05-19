@@ -315,6 +315,8 @@ const MongoDBViewerWidget: React.FC<WidgetProps> = ({ id, config = {} }) => {
   const [viewFormat, setViewFormat] = useState<'standard' | 'json'>('standard');
   const itemsPerPage = 50; // Increased to show more items in the sidebar
 
+  const [isConnected, setIsConnected] = useState<boolean>(false);
+
   // Fetch collections on mount
   useEffect(() => {
     console.log('MongoDBViewerWidget mounted, fetching collections...');
@@ -625,6 +627,15 @@ const MongoDBViewerWidget: React.FC<WidgetProps> = ({ id, config = {} }) => {
               setError('MongoDB is not connected. Please check your database connection.');
               throw new Error('MongoDB is not connected');
             }
+            
+            // If we got this far, MongoDB is connected. Let's check for collections.
+            if (statusData?.mongodb?.collectionNames && 
+                statusData.mongodb.collectionNames.length > 0 && 
+                !statusData.mongodb.collectionNames.includes(selectedCollection)) {
+              console.warn(`Selected collection "${selectedCollection}" does not exist in MongoDB`);
+              setError(`Collection "${selectedCollection}" does not exist in MongoDB. Available collections: ${statusData.mongodb.collectionNames.join(', ')}`);
+              throw new Error(`Collection "${selectedCollection}" does not exist`);
+            }
           }
         } catch (statusErr) {
           console.error('Error checking MongoDB status:', statusErr);
@@ -769,6 +780,79 @@ const MongoDBViewerWidget: React.FC<WidgetProps> = ({ id, config = {} }) => {
   // Handle search input change - now acts as a filter
   const handleSearchInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
+  };
+
+  // Check connection status in detail - helps with troubleshooting
+  const checkConnectionStatus = async () => {
+    try {
+      setLoading(true);
+      const statusUrl = 'http://localhost:5002/api/status';
+      
+      console.log('Checking connection status in detail...');
+
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000);
+      
+      try {
+        const response = await fetch(statusUrl, {
+          method: 'GET',
+          headers: {
+            'Accept': 'application/json',
+            'Cache-Control': 'no-cache'
+          },
+          credentials: 'omit',
+          mode: 'cors',
+          signal: controller.signal
+        });
+
+        clearTimeout(timeoutId);
+        
+        if (response.status === 200) {
+          const data = await response.json();
+          const mongoStatus = data?.mongodb || {};
+          
+          // First check if backend is accessible
+          const backendConnected = true; // If we got here, backend is working
+          
+          // Then check MongoDB connection
+          const mongoConnected = mongoStatus.connected === true;
+          setIsConnected(mongoConnected);
+          
+          // Build a detailed status message
+          const statusDetails = [
+            `Backend API: ${backendConnected ? 'Connected ✅' : 'Disconnected ❌'}`,
+            `MongoDB: ${mongoConnected ? 'Connected ✅' : 'Disconnected ❌'}`
+          ];
+          
+          if (mongoConnected) {
+            statusDetails.push(`Database: ${mongoStatus.databaseName || 'rpger'}`);
+            statusDetails.push(`Collections: ${mongoStatus.collections || 0}`);
+            statusDetails.push(`Collection Names: ${(mongoStatus.collectionNames || []).join(', ') || 'None'}`);
+          }
+          
+          // Show the detailed status message
+          alert('Connection Status:\n\n' + statusDetails.join('\n'));
+          
+          // If MongoDB is not connected, show detailed error
+          if (!mongoConnected) {
+            setError('MongoDB is not connected. Please check your database connection and ensure the MongoDB container is running.');
+          } else {
+            // Connection successful, clear any error and refresh collections
+            setError(null);
+            fetchCollections();
+          }
+        } else {
+          throw new Error(`API status endpoint returned ${response.status}`);
+        }
+      } catch (error) {
+        console.error('Error checking connection status:', error);
+        setError(`Backend API not accessible at ${statusUrl}. Please check that the backend is running.`);
+        alert(`Connection Error: Backend API not accessible at ${statusUrl}.\n\nPlease check that the backend is running and accessible.`);
+        setIsConnected(false);
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   // Toggle view format between standard and JSON
@@ -1011,6 +1095,26 @@ const MongoDBViewerWidget: React.FC<WidgetProps> = ({ id, config = {} }) => {
           >
             <span>↻</span> Refresh
           </button>
+          <button
+            onClick={checkConnectionStatus}
+            style={{
+              padding: '6px 12px',
+              backgroundColor: '#4a5568',
+              color: 'white',
+              border: 'none',
+              borderRadius: '4px',
+              cursor: 'pointer',
+              fontSize: '14px',
+              fontWeight: 'bold',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '5px'
+            }}
+            title="Check connection status and diagnose issues"
+            disabled={loading}
+          >
+            <span>🔍</span> Diagnose
+          </button>
         </div>
       </WidgetHeader>
 
@@ -1068,11 +1172,39 @@ const MongoDBViewerWidget: React.FC<WidgetProps> = ({ id, config = {} }) => {
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px' }}>
               <div>{error}</div>
               <div style={{ fontSize: '0.9em', marginTop: '10px' }}>
-                Using mock data as fallback. The data shown is not from the actual database.
+                {isConnected ? 
+                  "Connected to MongoDB, but unable to fetch data. The collection may be empty or inaccessible." : 
+                  "Unable to connect to MongoDB. The database service may be unavailable."}
               </div>
               <div style={{ fontSize: '0.8em', marginTop: '5px', color: '#666' }}>
-                Check that the MongoDB server is running and accessible at http://localhost:5002/api/collections/
+                <ul style={{ textAlign: 'left', margin: '5px 0', paddingLeft: '20px' }}>
+                  <li>Check that the MongoDB container is running: <code>docker ps | grep rpger-mongodb</code></li>
+                  <li>Verify backend is running and can connect to MongoDB</li>
+                  <li>Check backend logs for connection errors</li>
+                  <li>Try refreshing the page or restarting the application stack</li>
+                </ul>
               </div>
+              <button 
+                onClick={() => {
+                  console.log('Retry button clicked');
+                  fetchCollections();
+                  if (selectedCollection) {
+                    fetchResults();
+                  }
+                }}
+                style={{
+                  marginTop: '10px',
+                  padding: '8px 16px',
+                  backgroundColor: '#8a2be2',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: 'pointer',
+                  fontWeight: 'bold'
+                }}
+              >
+                Retry Connection
+              </button>
             </div>
           </StatusMessage>
         ) : results.length === 0 ? (
