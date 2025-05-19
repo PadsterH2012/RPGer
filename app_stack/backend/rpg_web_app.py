@@ -536,7 +536,6 @@ def api_status():
             if not connected:
                 logger.error("All MongoDB connection attempts failed. Please check that MongoDB is running and accessible.")
                 raise Exception("All MongoDB connection attempts failed")
-                raise Exception("All MongoDB connection attempts failed")
 
             # Get collections
             collections = db.list_collection_names()
