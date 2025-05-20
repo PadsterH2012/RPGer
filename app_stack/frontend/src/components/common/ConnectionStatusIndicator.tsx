@@ -105,8 +105,19 @@ const ConnectionStatusIndicator: React.FC<ConnectionStatusIndicatorProps> = ({
 
     if (needsApiCheck) {
       try {
+        // Get the API URL from environment variables or use default
+        let apiBaseUrl = import.meta.env.VITE_API_URL || 'http://localhost:5002';
+
+        // If we're accessing from a different machine, use the server's IP address
+        if (typeof window !== 'undefined' && window.location.hostname !== 'localhost' && apiBaseUrl.includes('localhost')) {
+          // Try to use the current window location's hostname instead of localhost
+          const serverHostname = window.location.hostname;
+          apiBaseUrl = apiBaseUrl.replace('localhost', serverHostname);
+          console.log('ConnectionStatusIndicator: Adjusted API URL:', apiBaseUrl);
+        }
+
         // Use direct fetch with more robust error handling
-        const apiUrl = 'http://localhost:5002/api/status';
+        const apiUrl = `${apiBaseUrl}/api/status`;
         console.log('ConnectionStatusIndicator: Fetching status from', apiUrl);
 
         const controller = new AbortController();

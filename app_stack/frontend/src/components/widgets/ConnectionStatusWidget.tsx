@@ -45,10 +45,16 @@ interface ServiceStats {
   chromaCollectionNames: string[];
   chromaEmbeddings: number;
   chromaVersion: string;
+  serverHostname: string;
+  serverIp: string;
 }
 
 // API response interface from Flask-SocketIO server
 interface FlaskStatusResponse {
+  server?: {
+    hostname: string;
+    ip: string;
+  };
   mongodb: {
     connected: boolean;
     collections: number;
@@ -98,7 +104,9 @@ const ConnectionStatusWidget: React.FC = () => {
     chromaCollections: 0,
     chromaCollectionNames: [],
     chromaEmbeddings: 0,
-    chromaVersion: ''
+    chromaVersion: '',
+    serverHostname: '',
+    serverIp: ''
   });
 
   const [lastChecked, setLastChecked] = useState<string>('');
@@ -119,9 +127,20 @@ const ConnectionStatusWidget: React.FC = () => {
     });
 
     try {
+      // Get the API URL from environment variables or use default
+      let apiBaseUrl = import.meta.env.VITE_API_URL || 'http://localhost:5002';
+
+      // If we're accessing from a different machine, use the server's IP address
+      if (typeof window !== 'undefined' && window.location.hostname !== 'localhost' && apiBaseUrl.includes('localhost')) {
+        // Try to use the current window location's hostname instead of localhost
+        const serverHostname = window.location.hostname;
+        apiBaseUrl = apiBaseUrl.replace('localhost', serverHostname);
+        console.log('Adjusted API URL for connection status:', apiBaseUrl);
+      }
+
       // Make API call to check all services directly from Flask-SocketIO server
-      console.log('Fetching status from Flask-SocketIO server...');
-      const response = await fetch('http://localhost:5002/api/status');
+      console.log('Fetching status from Flask-SocketIO server:', `${apiBaseUrl}/api/status`);
+      const response = await fetch(`${apiBaseUrl}/api/status`);
 
       if (response.status === 200) {
         const data = await response.json() as FlaskStatusResponse;
@@ -148,7 +167,9 @@ const ConnectionStatusWidget: React.FC = () => {
           chromaCollections: data.chroma.collections,
           chromaCollectionNames: data.chroma.collectionNames || [],
           chromaEmbeddings: data.chroma.embeddings,
-          chromaVersion: data.chroma.version
+          chromaVersion: data.chroma.version,
+          serverHostname: data.server?.hostname || '',
+          serverIp: data.server?.ip || ''
         });
       } else {
         console.error(`API returned status ${response.status}`);
@@ -164,7 +185,18 @@ const ConnectionStatusWidget: React.FC = () => {
       let socketioConnected = false;
       try {
         console.log('Checking Socket.IO status separately...');
-        const socketResponse = await fetch('http://localhost:5002/api/socketio-status');
+        // Get the API URL from environment variables or use default
+        let apiBaseUrl = import.meta.env.VITE_API_URL || 'http://localhost:5002';
+
+        // If we're accessing from a different machine, use the server's IP address
+        if (typeof window !== 'undefined' && window.location.hostname !== 'localhost' && apiBaseUrl.includes('localhost')) {
+          // Try to use the current window location's hostname instead of localhost
+          const serverHostname = window.location.hostname;
+          apiBaseUrl = apiBaseUrl.replace('localhost', serverHostname);
+          console.log('Adjusted API URL for socketio status:', apiBaseUrl);
+        }
+
+        const socketResponse = await fetch(`${apiBaseUrl}/api/socketio-status`);
         if (socketResponse.status === 200) {
           const socketData = await socketResponse.json();
           socketioConnected = socketData.status === 'ok';
@@ -348,6 +380,13 @@ const ConnectionStatusWidget: React.FC = () => {
         {lastChecked && (
           <div className="last-checked">
             Last checked: {lastChecked}
+          </div>
+        )}
+
+        {/* Display server information if available */}
+        {status.mongodb === 'connected' && (
+          <div className="server-info" style={{ marginTop: '10px', fontSize: '12px', color: '#666' }}>
+            Server: {stats.serverHostname || 'Unknown'} ({stats.serverIp || 'Unknown IP'})
           </div>
         )}
       </div>

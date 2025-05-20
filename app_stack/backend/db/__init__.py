@@ -12,32 +12,69 @@ from chromadb.config import Settings
 # Configure logging
 logger = logging.getLogger(__name__)
 
+# Get MongoDB connection parameters from environment variables
+def get_mongodb_connection_params():
+    """Get MongoDB connection parameters from environment variables with defaults"""
+    return {
+        'uri': os.environ.get('MONGODB_URI', 'mongodb://localhost:27017/rpger'),
+        'connect_timeout_ms': int(os.environ.get('MONGODB_CONNECT_TIMEOUT_MS', 10000)),
+        'socket_timeout_ms': int(os.environ.get('MONGODB_SOCKET_TIMEOUT_MS', 10000)),
+        'server_selection_timeout_ms': int(os.environ.get('MONGODB_SERVER_SELECTION_TIMEOUT_MS', 10000)),
+        'max_pool_size': int(os.environ.get('MONGODB_MAX_POOL_SIZE', 50)),
+        'min_pool_size': int(os.environ.get('MONGODB_MIN_POOL_SIZE', 5)),
+        'max_idle_time_ms': int(os.environ.get('MONGODB_MAX_IDLE_TIME_MS', 60000))
+    }
+
 # MongoDB connection
 def get_mongodb_client():
     """Get a MongoDB client instance."""
-    # Try multiple connection strings to handle different environments
-    connection_strings = [
-        os.environ.get('MONGODB_URI', "mongodb://admin:password@mongodb:27017/rpger?authSource=admin"),
-        "mongodb://admin:password@localhost:27017/rpger?authSource=admin",
-        "mongodb://localhost:27017/rpger"
-    ]
+    # Get connection parameters
+    mongo_params = get_mongodb_connection_params()
+    uri = mongo_params['uri']
 
-    last_error = None
-    for uri in connection_strings:
-        try:
-            logger.info(f"Attempting to connect to MongoDB with URI: {uri.split('@')[-1]}")  # Log only the non-credential part
-            client = MongoClient(uri, serverSelectionTimeoutMS=5000)
-            # Verify connection
-            client.server_info()
-            logger.info(f"Successfully connected to MongoDB at {uri.split('@')[-1]}")
-            return client
-        except Exception as e:
-            last_error = e
-            logger.warning(f"Failed to connect to MongoDB at {uri.split('@')[-1]}: {e}")
+    # Mask password in logs
+    masked_uri = uri
+    if '@' in uri:
+        prefix = uri.split('@')[0]
+        suffix = uri.split('@')[1]
+        if ':' in prefix:
+            masked_uri = f"{prefix.split(':')[0]}:***@{suffix}"
 
-    # If we get here, all connection attempts failed
-    logger.error(f"All MongoDB connection attempts failed. Last error: {last_error}")
-    raise last_error
+    try:
+        logger.info(f"Attempting to connect to MongoDB with URI: {masked_uri}")
+
+        # Create MongoDB client with connection parameters
+        client = MongoClient(
+            uri,
+            serverSelectionTimeoutMS=mongo_params['server_selection_timeout_ms'],
+            connectTimeoutMS=mongo_params['connect_timeout_ms'],
+            socketTimeoutMS=mongo_params['socket_timeout_ms'],
+            maxPoolSize=mongo_params['max_pool_size'],
+            minPoolSize=mongo_params['min_pool_size'],
+            maxIdleTimeMS=mongo_params['max_idle_time_ms'],
+            retryWrites=True,
+            retryReads=True
+        )
+
+        # Verify connection
+        client.server_info()
+        logger.info(f"Successfully connected to MongoDB at {masked_uri}")
+        return client
+    except Exception as e:
+        logger.error(f"Failed to connect to MongoDB: {e}")
+
+        # Provide troubleshooting information
+        troubleshooting = (
+            "MongoDB connection failed. Please check:\n"
+            "1. MongoDB service is running\n"
+            "2. Network connectivity to MongoDB server\n"
+            "3. Authentication credentials are correct\n"
+            "4. Firewall settings allow connections\n"
+            "5. MongoDB server is listening on the expected port\n"
+            "6. MONGODB_URI environment variable is set correctly"
+        )
+        logger.error(troubleshooting)
+        raise
 
 def get_mongodb_database():
     """Get the MongoDB database instance."""
@@ -45,19 +82,50 @@ def get_mongodb_database():
     db_name = os.environ.get('MONGODB_DATABASE', 'rpger')
     return client[db_name]
 
+# Get Chroma connection parameters from environment variables
+def get_chroma_connection_params():
+    """Get Chroma connection parameters from environment variables with defaults"""
+    return {
+        'host': os.environ.get('CHROMA_HOST', 'localhost'),
+        'port': os.environ.get('CHROMA_PORT', '8000'),
+        'ssl': os.environ.get('CHROMA_SSL', 'false').lower() == 'true',
+        'headers': {}  # Can be extended for authentication if needed
+    }
+
 # Chroma connection
 def get_chroma_client():
     """Get a Chroma client instance."""
-    chroma_host = os.environ.get('CHROMA_HOST', 'chroma')
-    chroma_port = os.environ.get('CHROMA_PORT', '8000')
+    # Get connection parameters
+    chroma_params = get_chroma_connection_params()
+
     try:
-        client = chromadb.HttpClient(host=chroma_host, port=chroma_port)
+        logger.info(f"Attempting to connect to Chroma at {chroma_params['host']}:{chroma_params['port']}")
+
+        # Create Chroma client
+        client = chromadb.HttpClient(
+            host=chroma_params['host'],
+            port=chroma_params['port'],
+            ssl=chroma_params['ssl'],
+            headers=chroma_params['headers']
+        )
+
         # Verify connection
         client.heartbeat()
-        logger.info("Connected to Chroma")
+        logger.info(f"Successfully connected to Chroma at {chroma_params['host']}:{chroma_params['port']}")
         return client
     except Exception as e:
         logger.error(f"Failed to connect to Chroma: {e}")
+
+        # Provide troubleshooting information
+        troubleshooting = (
+            "Chroma connection failed. Please check:\n"
+            "1. Chroma service is running\n"
+            "2. Network connectivity to Chroma server\n"
+            "3. Firewall settings allow connections\n"
+            "4. Chroma server is listening on the expected port\n"
+            "5. CHROMA_HOST and CHROMA_PORT environment variables are set correctly"
+        )
+        logger.error(troubleshooting)
         raise
 
 # Initialize database collections

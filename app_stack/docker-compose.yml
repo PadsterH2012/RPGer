@@ -14,8 +14,8 @@ services:
       - JWT_SECRET=${JWT_SECRET:-your_jwt_secret_here}
       - CLIENT_URL=${CLIENT_URL:-http://rpger-frontend:3001}
     ports:
-      - "${BACKEND_PORT:-5000}:5000"
-      - "5002:5002"
+      - "0.0.0.0:${BACKEND_PORT:-5000}:5000"
+      - "0.0.0.0:5002:5002"
     volumes:
       - ./backend:/app
       - /app/node_modules
@@ -36,7 +36,7 @@ services:
       - VITE_API_URL=http://rpger-backend:5000
       - VITE_SOCKET_URL=http://rpger-backend:5002
     ports:
-      - "${FRONTEND_PORT:-3001}:3001"
+      - "0.0.0.0:${FRONTEND_PORT:-3001}:3001"
     volumes:
       - ./frontend:/app
       - /app/node_modules

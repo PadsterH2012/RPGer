@@ -426,8 +426,28 @@ const MongoDBViewerWidget: React.FC<WidgetProps> = ({ id, config = {} }) => {
 
       // Try to fetch from real API first using direct fetch with improved error handling
       try {
+        // Get the API URL from environment variables or use default
+        // This ensures we use the correct URL in both development and container environments
+        let apiBaseUrl = import.meta.env.VITE_API_URL || 'http://localhost:5002';
+
+        // Log the API URL for debugging
+        console.log('Using API URL:', apiBaseUrl);
+
+        // If we're running in a browser and the URL contains 'localhost' but we're in a container,
+        // try both the container name and localhost
+        const isContainer = typeof window !== 'undefined' && window.location.hostname !== 'localhost';
+
+        // If we're accessing from a different machine, use the server's IP address
+        if (isContainer && apiBaseUrl.includes('localhost')) {
+          console.log('Detected cross-machine access, adjusting API URL');
+          // Try to use the current window location's hostname instead of localhost
+          const serverHostname = window.location.hostname;
+          apiBaseUrl = apiBaseUrl.replace('localhost', serverHostname);
+          console.log('Adjusted API URL:', apiBaseUrl);
+        }
+
         // First try the status endpoint which has collection names
-        const apiUrl = 'http://localhost:5002/api/status';
+        const apiUrl = `${apiBaseUrl}/api/status`;
         console.log('Requesting API status from:', apiUrl);
 
         const controller = new AbortController();
@@ -504,7 +524,7 @@ const MongoDBViewerWidget: React.FC<WidgetProps> = ({ id, config = {} }) => {
         }
 
         // If status endpoint doesn't have collection names, try the collections endpoint
-        const collectionsUrl = 'http://localhost:5002/api/collections/';
+        const collectionsUrl = `${apiBaseUrl}/api/collections/`;
         console.log('Requesting collections from:', collectionsUrl);
 
         const collectionsController = new AbortController();
@@ -587,7 +607,18 @@ const MongoDBViewerWidget: React.FC<WidgetProps> = ({ id, config = {} }) => {
       try {
         // First check if MongoDB is connected via status endpoint
         try {
-          const statusUrl = 'http://localhost:5002/api/status';
+          // Get the API URL from environment variables or use default
+          let apiBaseUrl = import.meta.env.VITE_API_URL || 'http://localhost:5002';
+
+          // If we're accessing from a different machine, use the server's IP address
+          if (typeof window !== 'undefined' && window.location.hostname !== 'localhost' && apiBaseUrl.includes('localhost')) {
+            // Try to use the current window location's hostname instead of localhost
+            const serverHostname = window.location.hostname;
+            apiBaseUrl = apiBaseUrl.replace('localhost', serverHostname);
+            console.log('Adjusted API URL for status check:', apiBaseUrl);
+          }
+
+          const statusUrl = `${apiBaseUrl}/api/status`;
           console.log('Checking MongoDB status from:', statusUrl);
 
           const statusController = new AbortController();
@@ -627,10 +658,10 @@ const MongoDBViewerWidget: React.FC<WidgetProps> = ({ id, config = {} }) => {
               setError('MongoDB is not connected. Please check your database connection.');
               throw new Error('MongoDB is not connected');
             }
-            
+
             // If we got this far, MongoDB is connected. Let's check for collections.
-            if (statusData?.mongodb?.collectionNames && 
-                statusData.mongodb.collectionNames.length > 0 && 
+            if (statusData?.mongodb?.collectionNames &&
+                statusData.mongodb.collectionNames.length > 0 &&
                 !statusData.mongodb.collectionNames.includes(selectedCollection)) {
               console.warn(`Selected collection "${selectedCollection}" does not exist in MongoDB`);
               setError(`Collection "${selectedCollection}" does not exist in MongoDB. Available collections: ${statusData.mongodb.collectionNames.join(', ')}`);
@@ -642,8 +673,19 @@ const MongoDBViewerWidget: React.FC<WidgetProps> = ({ id, config = {} }) => {
           // Continue anyway to try the collection endpoint
         }
 
+        // Get the API URL from environment variables or use default
+        let apiBaseUrl = import.meta.env.VITE_API_URL || 'http://localhost:5002';
+
+        // If we're accessing from a different machine, use the server's IP address
+        if (typeof window !== 'undefined' && window.location.hostname !== 'localhost' && apiBaseUrl.includes('localhost')) {
+          // Try to use the current window location's hostname instead of localhost
+          const serverHostname = window.location.hostname;
+          apiBaseUrl = apiBaseUrl.replace('localhost', serverHostname);
+          console.log('Adjusted API URL for collections:', apiBaseUrl);
+        }
+
         // Build URL with query parameters
-        const url = new URL(`http://localhost:5002/api/collections/${selectedCollection}`);
+        const url = new URL(`${apiBaseUrl}/api/collections/${selectedCollection}`);
         url.searchParams.append('page', page.toString());
         url.searchParams.append('limit', itemsPerPage.toString());
 
@@ -786,13 +828,24 @@ const MongoDBViewerWidget: React.FC<WidgetProps> = ({ id, config = {} }) => {
   const checkConnectionStatus = async () => {
     try {
       setLoading(true);
-      const statusUrl = 'http://localhost:5002/api/status';
-      
+      // Get the API URL from environment variables or use default
+      let apiBaseUrl = import.meta.env.VITE_API_URL || 'http://localhost:5002';
+
+      // If we're accessing from a different machine, use the server's IP address
+      if (typeof window !== 'undefined' && window.location.hostname !== 'localhost' && apiBaseUrl.includes('localhost')) {
+        // Try to use the current window location's hostname instead of localhost
+        const serverHostname = window.location.hostname;
+        apiBaseUrl = apiBaseUrl.replace('localhost', serverHostname);
+        console.log('Adjusted API URL for diagnostics:', apiBaseUrl);
+      }
+
+      const statusUrl = `${apiBaseUrl}/api/status`;
+
       console.log('Checking connection status in detail...');
 
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 5000);
-      
+
       try {
         const response = await fetch(statusUrl, {
           method: 'GET',
@@ -806,33 +859,33 @@ const MongoDBViewerWidget: React.FC<WidgetProps> = ({ id, config = {} }) => {
         });
 
         clearTimeout(timeoutId);
-        
+
         if (response.status === 200) {
           const data = await response.json();
           const mongoStatus = data?.mongodb || {};
-          
+
           // First check if backend is accessible
           const backendConnected = true; // If we got here, backend is working
-          
+
           // Then check MongoDB connection
           const mongoConnected = mongoStatus.connected === true;
           setIsConnected(mongoConnected);
-          
+
           // Build a detailed status message
           const statusDetails = [
             `Backend API: ${backendConnected ? 'Connected ✅' : 'Disconnected ❌'}`,
             `MongoDB: ${mongoConnected ? 'Connected ✅' : 'Disconnected ❌'}`
           ];
-          
+
           if (mongoConnected) {
             statusDetails.push(`Database: ${mongoStatus.databaseName || 'rpger'}`);
             statusDetails.push(`Collections: ${mongoStatus.collections || 0}`);
             statusDetails.push(`Collection Names: ${(mongoStatus.collectionNames || []).join(', ') || 'None'}`);
           }
-          
+
           // Show the detailed status message
           alert('Connection Status:\n\n' + statusDetails.join('\n'));
-          
+
           // If MongoDB is not connected, show detailed error
           if (!mongoConnected) {
             setError('MongoDB is not connected. Please check your database connection and ensure the MongoDB container is running.');
@@ -1170,41 +1223,66 @@ const MongoDBViewerWidget: React.FC<WidgetProps> = ({ id, config = {} }) => {
         ) : error ? (
           <StatusMessage theme={theme} isError>
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px' }}>
-              <div>{error}</div>
+              <div style={{ fontWeight: 'bold', fontSize: '1.1em', color: '#e53e3e' }}>{error}</div>
               <div style={{ fontSize: '0.9em', marginTop: '10px' }}>
-                {isConnected ? 
-                  "Connected to MongoDB, but unable to fetch data. The collection may be empty or inaccessible." : 
+                {isConnected ?
+                  "Connected to MongoDB, but unable to fetch data. The collection may be empty or inaccessible." :
                   "Unable to connect to MongoDB. The database service may be unavailable."}
               </div>
-              <div style={{ fontSize: '0.8em', marginTop: '5px', color: '#666' }}>
+              <div style={{ fontSize: '0.9em', marginTop: '5px', padding: '10px', backgroundColor: 'rgba(0,0,0,0.05)', borderRadius: '5px', width: '100%' }}>
+                <div style={{ fontWeight: 'bold', marginBottom: '5px' }}>Diagnostic Information:</div>
+                <ul style={{ textAlign: 'left', margin: '5px 0', paddingLeft: '20px' }}>
+                  <li>API URL: {import.meta.env.VITE_API_URL || 'http://localhost:5002'}</li>
+                  <li>Selected Collection: {selectedCollection || 'None'}</li>
+                  <li>Connection Status: {isConnected ? 'Connected' : 'Disconnected'}</li>
+                </ul>
+              </div>
+              <div style={{ fontSize: '0.9em', marginTop: '5px', color: '#4a5568' }}>
+                <div style={{ fontWeight: 'bold', marginBottom: '5px' }}>Troubleshooting Steps:</div>
                 <ul style={{ textAlign: 'left', margin: '5px 0', paddingLeft: '20px' }}>
                   <li>Check that the MongoDB container is running: <code>docker ps | grep rpger-mongodb</code></li>
                   <li>Verify backend is running and can connect to MongoDB</li>
                   <li>Check backend logs for connection errors</li>
                   <li>Try refreshing the page or restarting the application stack</li>
+                  <li>Check that the API URL in your environment variables is correct</li>
                 </ul>
               </div>
-              <button 
-                onClick={() => {
-                  console.log('Retry button clicked');
-                  fetchCollections();
-                  if (selectedCollection) {
-                    fetchResults();
-                  }
-                }}
-                style={{
-                  marginTop: '10px',
-                  padding: '8px 16px',
-                  backgroundColor: '#8a2be2',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '4px',
-                  cursor: 'pointer',
-                  fontWeight: 'bold'
-                }}
-              >
-                Retry Connection
-              </button>
+              <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
+                <button
+                  onClick={() => {
+                    console.log('Retry button clicked');
+                    fetchCollections();
+                    if (selectedCollection) {
+                      fetchResults();
+                    }
+                  }}
+                  style={{
+                    padding: '8px 16px',
+                    backgroundColor: '#8a2be2',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '4px',
+                    cursor: 'pointer',
+                    fontWeight: 'bold'
+                  }}
+                >
+                  Retry Connection
+                </button>
+                <button
+                  onClick={checkConnectionStatus}
+                  style={{
+                    padding: '8px 16px',
+                    backgroundColor: '#4a5568',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '4px',
+                    cursor: 'pointer',
+                    fontWeight: 'bold'
+                  }}
+                >
+                  Run Diagnostics
+                </button>
+              </div>
             </div>
           </StatusMessage>
         ) : results.length === 0 ? (

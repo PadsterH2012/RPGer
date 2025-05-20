@@ -27,6 +27,14 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
       serverUrl = serverUrl.replace('rpger-backend', 'localhost');
     }
 
+    // If we're accessing from a different machine, use the server's IP address
+    if (typeof window !== 'undefined' && window.location.hostname !== 'localhost' && serverUrl.includes('localhost')) {
+      // Try to use the current window location's hostname instead of localhost
+      const serverHostname = window.location.hostname;
+      serverUrl = serverUrl.replace('localhost', serverHostname);
+      console.log('Adjusted socket server URL for cross-machine access:', serverUrl);
+    }
+
     console.log('Connecting to socket server at:', serverUrl);
 
     // Reset any existing connection first
