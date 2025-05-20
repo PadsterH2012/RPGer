@@ -3,17 +3,55 @@ import json
 import threading
 import time
 import queue
+import sys
 from flask import Flask, request, jsonify, Response, stream_with_context
 from flask_socketio import SocketIO, emit
 from flask_cors import CORS
 import logging
 import pymongo
+import redis
+import requests
+from dotenv import load_dotenv
 from routes.collections import collections_bp
 from routes.performance import performance_bp
 
 # Set up logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+log_level = os.environ.get('LOG_LEVEL', 'INFO').upper()
+logging.basicConfig(level=getattr(logging, log_level),
+                   format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger('RPGWebApp')
+
+# Load environment variables from .env file
+load_dotenv()
+
+# Database connection settings
+def get_mongodb_connection_params():
+    """Get MongoDB connection parameters from environment variables with defaults"""
+    return {
+        'uri': os.environ.get('MONGODB_URI', 'mongodb://localhost:27017/rpger'),
+        'connect_timeout_ms': int(os.environ.get('MONGODB_CONNECT_TIMEOUT_MS', 10000)),
+        'socket_timeout_ms': int(os.environ.get('MONGODB_SOCKET_TIMEOUT_MS', 10000)),
+        'server_selection_timeout_ms': int(os.environ.get('MONGODB_SERVER_SELECTION_TIMEOUT_MS', 10000)),
+        'max_pool_size': int(os.environ.get('MONGODB_MAX_POOL_SIZE', 50)),
+        'min_pool_size': int(os.environ.get('MONGODB_MIN_POOL_SIZE', 5)),
+        'max_idle_time_ms': int(os.environ.get('MONGODB_MAX_IDLE_TIME_MS', 60000))
+    }
+
+def get_redis_connection_params():
+    """Get Redis connection parameters from environment variables with defaults"""
+    return {
+        'url': os.environ.get('REDIS_URL', 'redis://localhost:6379'),
+        'socket_timeout': int(os.environ.get('REDIS_SOCKET_TIMEOUT', 2)),
+        'socket_connect_timeout': int(os.environ.get('REDIS_SOCKET_CONNECT_TIMEOUT', 2)),
+        'retry_on_timeout': os.environ.get('REDIS_RETRY_ON_TIMEOUT', 'true').lower() == 'true'
+    }
+
+def get_chroma_connection_params():
+    """Get Chroma connection parameters from environment variables with defaults"""
+    return {
+        'host': os.environ.get('CHROMA_HOST', 'localhost'),
+        'port': os.environ.get('CHROMA_PORT', '8000')
+    }
 
 # Try to import the game engine
 try:
@@ -61,23 +99,56 @@ except ImportError:
 
 # Initialize Flask app
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'secret!'
-# Enable CORS for all routes and origins with more permissive settings
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'change_this_in_production')
+
+# Get CORS settings from environment variables
+def get_cors_settings():
+    """Get CORS settings from environment variables"""
+    # Default allowed origins
+    default_origins = [
+        "http://localhost:3000",
+        "http://localhost:3001",
+        "http://localhost:3002",
+        "http://localhost:5000",
+        "http://localhost:5002",
+        "http://127.0.0.1:3000",
+        "http://127.0.0.1:3001",
+        "http://127.0.0.1:3002",
+        "http://127.0.0.1:5000",
+        "http://127.0.0.1:5002"
+    ]
+
+    # Get allowed origins from environment variable if set
+    cors_origins_env = os.environ.get('CORS_ALLOWED_ORIGINS', '')
+    if cors_origins_env:
+        # Split by comma and strip whitespace
+        custom_origins = [origin.strip() for origin in cors_origins_env.split(',')]
+        # Add custom origins to default origins
+        return default_origins + custom_origins
+
+    return default_origins
+
+# Get allowed origins
+allowed_origins = get_cors_settings()
+logger.info(f"CORS allowed origins: {allowed_origins}")
+
+# Enable CORS for all routes with secure settings
 CORS(app,
-     resources={r"/*": {"origins": "*"}},
+     resources={r"/*": {"origins": allowed_origins}},
      supports_credentials=True,
      allow_headers=["Content-Type", "Authorization", "X-Requested-With", "Accept", "Origin"],
-     methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"])
+     methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+     expose_headers=["Content-Type", "X-Requested-With"])
 
-# Configure Socket.IO with explicit CORS settings and more debugging
+# Configure Socket.IO with matching CORS settings
 socketio = SocketIO(
     app,
-    cors_allowed_origins=["http://localhost:3000", "http://localhost:3001", "http://localhost:3002", "http://localhost:5000", "*"],
+    cors_allowed_origins=allowed_origins,
     logger=True,
     engineio_logger=True,
-    ping_timeout=60,
-    ping_interval=25,
-    async_mode='eventlet'  # Explicitly set async mode
+    ping_timeout=int(os.environ.get('SOCKET_PING_TIMEOUT', 60)),
+    ping_interval=int(os.environ.get('SOCKET_PING_INTERVAL', 25)),
+    async_mode=os.environ.get('SOCKET_ASYNC_MODE', 'eventlet')
 )
 
 # Register blueprints
@@ -458,8 +529,20 @@ def api_status():
         import pymongo
         import redis
         import requests
+        import socket
+
+        # Get the server's hostname and IP address
+        hostname = socket.gethostname()
+        try:
+            server_ip = socket.gethostbyname(hostname)
+        except:
+            server_ip = "unknown"
 
         status = {
+            "server": {
+                "hostname": hostname,
+                "ip": server_ip
+            },
             "mongodb": {
                 "connected": False,
                 "collections": 0,
@@ -486,61 +569,47 @@ def api_status():
 
         # Check MongoDB connection
         try:
-            # Try multiple connection strings to handle different environments
-            # Order from most likely to work in various environments
-            connection_strings = [
-                # Docker internal networking - when backend runs in container
-                os.environ.get('MONGODB_URI', "mongodb://admin:password@mongodb:27017/rpger?authSource=admin"),
-                # Local development - with auth
-                "mongodb://admin:password@localhost:27017/rpger?authSource=admin",
-                # Try different port in case of port mapping
-                "mongodb://admin:password@localhost:27018/rpger?authSource=admin",
-                # Try without auth for simple installations
-                "mongodb://localhost:27017/rpger",
-                # Try with IP address for hosts that might have DNS issues
-                "mongodb://admin:password@127.0.0.1:27017/rpger?authSource=admin",
-                # Try Docker host special DNS name
-                "mongodb://admin:password@host.docker.internal:27017/rpger?authSource=admin"
-            ]
+            # Get MongoDB connection parameters from environment
+            mongo_params = get_mongodb_connection_params()
+            uri = mongo_params['uri']
 
-            connected = False
-            for uri in connection_strings:
-                try:
-                    # Mask password in logs but keep connection details
-                    masked_uri = uri
-                    if '@' in uri:
-                        prefix = uri.split('@')[0]
-                        suffix = uri.split('@')[1]
-                        if ':' in prefix:
-                            masked_uri = f"{prefix.split(':')[0]}:***@{suffix}"
-                    
-                    logger.info(f"Attempting to connect to MongoDB with URI: {masked_uri}")
-                    # Increase timeout and add more connection options for reliability
-                    mongo_client = pymongo.MongoClient(
-                        uri,
-                        serverSelectionTimeoutMS=5000,  # Increased timeout
-                        connectTimeoutMS=5000,
-                        socketTimeoutMS=5000,
-                        # These options help with connection stability
-                        retryWrites=True,
-                        retryReads=True
-                    )
-                    mongo_client.server_info()  # Will raise exception if cannot connect
-                    db = mongo_client["rpger"]
-                    connected = True
-                    logger.info(f"Successfully connected to MongoDB at {masked_uri}")
-                    break
-                except Exception as e:
-                    logger.warning(f"Failed to connect to MongoDB at {masked_uri}: {e}")
+            # Mask password in logs but keep connection details
+            masked_uri = uri
+            if '@' in uri:
+                prefix = uri.split('@')[0]
+                suffix = uri.split('@')[1]
+                if ':' in prefix:
+                    masked_uri = f"{prefix.split(':')[0]}:***@{suffix}"
 
-            if not connected:
-                logger.error("All MongoDB connection attempts failed. Please check that MongoDB is running and accessible.")
-                raise Exception("All MongoDB connection attempts failed")
+            logger.info(f"Attempting to connect to MongoDB with URI: {masked_uri}")
+
+            # Create MongoDB client with connection parameters
+            mongo_client = pymongo.MongoClient(
+                uri,
+                serverSelectionTimeoutMS=mongo_params['server_selection_timeout_ms'],
+                connectTimeoutMS=mongo_params['connect_timeout_ms'],
+                socketTimeoutMS=mongo_params['socket_timeout_ms'],
+                maxPoolSize=mongo_params['max_pool_size'],
+                minPoolSize=mongo_params['min_pool_size'],
+                maxIdleTimeMS=mongo_params['max_idle_time_ms'],
+                retryWrites=True,
+                retryReads=True
+            )
+
+            # Test connection with server_info (will raise exception if cannot connect)
+            server_info = mongo_client.server_info()
+            db = mongo_client["rpger"]
+
+            # Log successful connection with server version
+            logger.info(f"Successfully connected to MongoDB at {masked_uri}")
+            logger.info(f"MongoDB server version: {server_info.get('version', 'unknown')}")
+
+            # Update status with connection information
+            status["mongodb"]["connected"] = True
+            status["mongodb"]["version"] = server_info.get("version", "unknown")
 
             # Get collections
             collections = db.list_collection_names()
-
-            status["mongodb"]["connected"] = True
             status["mongodb"]["collections"] = len(collections)
             status["mongodb"]["collectionNames"] = collections
             status["mongodb"]["databaseName"] = "rpger"
@@ -556,19 +625,76 @@ def api_status():
             logger.info(f"Found {monster_count} monsters in MongoDB")
 
         except Exception as e:
+            # Handle connection failure
+            error_message = str(e)
+            logger.error(f"MongoDB connection error: {error_message}")
+
+            # Update status with error information
+            status["mongodb"]["connected"] = False
+            status["mongodb"]["error"] = error_message
+            status["mongodb"]["troubleshooting"] = [
+                "Check that MongoDB service is running",
+                "Verify network connectivity to MongoDB server",
+                "Confirm authentication credentials are correct",
+                "Check firewall settings allow connections",
+                "Ensure MongoDB server is listening on the expected port"
+            ]
+
+            # This code is unreachable because it's in the exception handler
+        # and will cause a SyntaxError: keyword argument repeated: retryWrites
+        # Removing this code block as it's duplicated below
+
+        except Exception as e:
             # Explicitly set connected to False on any error
             status["mongodb"]["connected"] = False
-            logger.error(f"MongoDB connection error: {e}")
+            error_message = str(e)
+            logger.error(f"MongoDB connection error: {error_message}")
+
+            # Add detailed error information to the status response
+            status["mongodb"]["error"] = error_message
+            status["mongodb"]["troubleshooting"] = [
+                "Check that MongoDB service is running",
+                "Verify network connectivity to MongoDB server",
+                "Confirm authentication credentials are correct",
+                "Check firewall settings allow connections",
+                "Ensure MongoDB server is listening on the expected port"
+            ]
 
         # Check Redis connection
         try:
-            redis_url = os.environ.get('REDIS_URL', "redis://:password@redis:6379")
-            redis_client = redis.from_url(redis_url, socket_timeout=2)
+            # Get Redis connection parameters from environment
+            redis_params = get_redis_connection_params()
+            redis_url = redis_params['url']
+
+            # Mask password in logs
+            masked_url = redis_url
+            if '@' in redis_url:
+                prefix = redis_url.split('@')[0]
+                suffix = redis_url.split('@')[1]
+                if ':' in prefix and prefix.count(':') > 1:
+                    parts = prefix.split(':')
+                    masked_url = f"{parts[0]}:{parts[1]}:***@{suffix}"
+
+            logger.info(f"Attempting to connect to Redis with URL: {masked_url}")
+
+            # Create Redis client with connection parameters
+            redis_client = redis.from_url(
+                redis_url,
+                socket_timeout=redis_params['socket_timeout'],
+                socket_connect_timeout=redis_params['socket_connect_timeout'],
+                retry_on_timeout=redis_params['retry_on_timeout']
+            )
+
+            # Test connection with ping
             if redis_client.ping():
+                logger.info(f"Successfully connected to Redis at {masked_url}")
+
+                # Update status with connection information
                 status["redis"]["connected"] = True
 
                 # Get Redis info
                 info = redis_client.info()
+                status["redis"]["version"] = info.get("redis_version", "unknown")
                 status["redis"]["usedMemory"] = info.get("used_memory_human", "0 MB")
                 status["redis"]["uptime"] = info.get("uptime_in_seconds", 0)
 
@@ -581,23 +707,49 @@ def api_status():
                     key_type = redis_client.type(key).decode('utf-8')
                     key_types[key_type] = key_types.get(key_type, 0) + 1
                 status["redis"]["keyTypes"] = key_types
+            else:
+                raise Exception("Redis ping failed")
+
         except Exception as e:
-            # Explicitly set connected to False on any error
+            # Handle connection failure
+            error_message = str(e)
+            logger.error(f"Redis connection error: {error_message}")
+
+            # Update status with error information
             status["redis"]["connected"] = False
-            logger.error(f"Redis connection error: {e}")
+            status["redis"]["error"] = error_message
+            status["redis"]["troubleshooting"] = [
+                "Check that Redis service is running",
+                "Verify network connectivity to Redis server",
+                "Confirm authentication credentials are correct",
+                "Check firewall settings allow connections",
+                "Ensure Redis server is listening on the expected port"
+            ]
 
         # Check Chroma connection
         try:
+            # Get Chroma connection parameters from environment
+            chroma_params = get_chroma_connection_params()
+            chroma_host = chroma_params['host']
+            chroma_port = chroma_params['port']
+            chroma_url = f"http://{chroma_host}:{chroma_port}"
+
+            logger.info(f"Attempting to connect to Chroma at {chroma_url}")
+
             # Chroma API endpoint for heartbeat
-            chroma_response = requests.get("http://chroma:8000/api/v2/heartbeat", timeout=2)
+            chroma_response = requests.get(f"{chroma_url}/api/v2/heartbeat", timeout=2)
 
             if chroma_response.status_code == 200:
+                logger.info(f"Successfully connected to Chroma at {chroma_url}")
+
+                # Update status with connection information
                 status["chroma"]["connected"] = True
                 status["chroma"]["version"] = "latest"  # Chroma doesn't expose version in API
+                status["chroma"]["url"] = chroma_url
 
                 # Try to get collections info
                 try:
-                    collections_response = requests.get("http://chroma:8000/api/v2/collections", timeout=2)
+                    collections_response = requests.get(f"{chroma_url}/api/v2/collections", timeout=2)
                     if collections_response.status_code == 200:
                         collections_data = collections_response.json()
                         status["chroma"]["collections"] = len(collections_data)
@@ -615,7 +767,7 @@ def api_status():
                             try:
                                 collection_id = collection.get("id")
                                 if collection_id:
-                                    count_response = requests.get(f"http://chroma:8000/api/v2/collections/{collection_id}/count", timeout=2)
+                                    count_response = requests.get(f"{chroma_url}/api/v2/collections/{collection_id}/count", timeout=2)
                                     if count_response.status_code == 200:
                                         count_data = count_response.json()
                                         total_embeddings += count_data.get("count", 0)
@@ -628,10 +780,23 @@ def api_status():
                     status["chroma"]["collections"] = 0
                     status["chroma"]["collectionNames"] = []
                     status["chroma"]["embeddings"] = 0
+            else:
+                raise Exception(f"Chroma heartbeat check failed with status code: {chroma_response.status_code}")
+
         except Exception as e:
-            # Explicitly set connected to False on any error
+            # Handle connection failure
+            error_message = str(e)
+            logger.error(f"Chroma connection error: {error_message}")
+
+            # Update status with error information
             status["chroma"]["connected"] = False
-            logger.error(f"Chroma connection error: {e}")
+            status["chroma"]["error"] = error_message
+            status["chroma"]["troubleshooting"] = [
+                "Check that Chroma service is running",
+                "Verify network connectivity to Chroma server",
+                "Check firewall settings allow connections",
+                "Ensure Chroma server is listening on the expected port (8000)"
+            ]
 
         return jsonify(status)
     except Exception as e:
@@ -646,6 +811,92 @@ def socketio_status():
         "version": "5.3.6",  # Hardcoded version from requirements.txt
         "clients": len(socketio.server.eio.sockets) if hasattr(socketio, 'server') else 0
     })
+
+@app.route('/api/health')
+def health_check():
+    """Health check endpoint for the application"""
+    import platform
+    import psutil
+
+    health_status = {
+        "status": "ok",
+        "timestamp": time.time(),
+        "uptime": time.time() - psutil.boot_time(),
+        "version": "1.0.0",  # Application version
+        "environment": os.environ.get("FLASK_ENV", "development"),
+        "system": {
+            "platform": platform.platform(),
+            "python": platform.python_version(),
+            "cpu_usage": psutil.cpu_percent(),
+            "memory_usage": psutil.virtual_memory().percent,
+            "disk_usage": psutil.disk_usage('/').percent
+        },
+        "services": {
+            "mongodb": {"status": "unknown"},
+            "redis": {"status": "unknown"},
+            "chroma": {"status": "unknown"}
+        }
+    }
+
+    # Check MongoDB connection
+    try:
+        from db import get_mongodb_client
+        client = get_mongodb_client()
+        server_info = client.server_info()
+        health_status["services"]["mongodb"] = {
+            "status": "ok",
+            "version": server_info.get("version", "unknown"),
+            "connection_time_ms": round(client.admin.command("ping")["ok"] * 1000)
+        }
+    except Exception as e:
+        health_status["services"]["mongodb"] = {
+            "status": "error",
+            "error": str(e)
+        }
+        # Don't fail the entire health check if one service is down
+        health_status["status"] = "degraded"
+
+    # Check Redis connection
+    try:
+        redis_params = get_redis_connection_params()
+        redis_client = redis.from_url(redis_params["url"])
+        if redis_client.ping():
+            info = redis_client.info()
+            health_status["services"]["redis"] = {
+                "status": "ok",
+                "version": info.get("redis_version", "unknown"),
+                "uptime_seconds": info.get("uptime_in_seconds", 0)
+            }
+    except Exception as e:
+        health_status["services"]["redis"] = {
+            "status": "error",
+            "error": str(e)
+        }
+        # Don't fail the entire health check if one service is down
+        health_status["status"] = "degraded"
+
+    # Check Chroma connection
+    try:
+        chroma_params = get_chroma_connection_params()
+        chroma_url = f"http://{chroma_params['host']}:{chroma_params['port']}"
+        chroma_response = requests.get(f"{chroma_url}/api/v2/heartbeat", timeout=2)
+
+        if chroma_response.status_code == 200:
+            health_status["services"]["chroma"] = {
+                "status": "ok",
+                "version": "latest"  # Chroma doesn't expose version in API
+            }
+    except Exception as e:
+        health_status["services"]["chroma"] = {
+            "status": "error",
+            "error": str(e)
+        }
+        # Don't fail the entire health check if one service is down
+        health_status["status"] = "degraded"
+
+    # Return health status with appropriate HTTP status code
+    http_status = 200 if health_status["status"] == "ok" else 503
+    return jsonify(health_status), http_status
 
 # Socket.IO event handlers
 @socketio.on('connect')
@@ -1033,8 +1284,95 @@ def handle_debug_message(data):
         logger.error(f"Error handling debug message: {e}")
         emit('error', {'message': str(e)})
 
+# Helper function to check if MongoDB is running
+def check_mongodb_connection():
+    """Check if MongoDB is running and accessible"""
+    try:
+        # Get MongoDB connection parameters from environment
+        mongo_params = get_mongodb_connection_params()
+        uri = mongo_params['uri']
+
+        # Mask password in logs
+        masked_uri = uri
+        if '@' in uri:
+            prefix = uri.split('@')[0]
+            suffix = uri.split('@')[1]
+            if ':' in prefix:
+                masked_uri = f"{prefix.split(':')[0]}:***@{suffix}"
+
+        logger.info(f"Testing MongoDB connection with URI: {masked_uri}")
+
+        # Create MongoDB client with connection parameters
+        client = pymongo.MongoClient(
+            uri,
+            serverSelectionTimeoutMS=mongo_params['server_selection_timeout_ms'],
+            connectTimeoutMS=mongo_params['connect_timeout_ms'],
+            socketTimeoutMS=mongo_params['socket_timeout_ms'],
+            maxPoolSize=mongo_params['max_pool_size'],
+            minPoolSize=mongo_params['min_pool_size'],
+            maxIdleTimeMS=mongo_params['max_idle_time_ms'],
+            retryWrites=True,
+            retryReads=True
+        )
+
+        # Test connection with server_info
+        server_info = client.server_info()
+
+        # Log successful connection with server version
+        logger.info(f"MongoDB connection successful at {masked_uri}")
+        logger.info(f"MongoDB server version: {server_info.get('version', 'unknown')}")
+
+        return True, None
+    except Exception as e:
+        error_message = str(e)
+        logger.warning(f"Failed to connect to MongoDB: {error_message}")
+
+        # Provide troubleshooting information
+        troubleshooting = (
+            "MongoDB connection failed. Please check:\n"
+            "1. MongoDB service is running\n"
+            "2. Network connectivity to MongoDB server\n"
+            "3. Authentication credentials are correct\n"
+            "4. Firewall settings allow connections\n"
+            "5. MongoDB server is listening on the expected port\n"
+            "6. MONGODB_URI environment variable is set correctly"
+        )
+        logger.warning(troubleshooting)
+
+        return False, error_message
+
 # Main entry point
 if __name__ == '__main__':
+    # Check if required packages are installed
+    try:
+        import redis
+        import requests
+        import dotenv
+    except ImportError as e:
+        logger.error(f"Required package not installed: {e}")
+        logger.error("Please install required packages with: pip install redis requests python-dotenv")
+        sys.exit(1)
+
+    # Check MongoDB connection before starting the server
+    mongo_connected, mongo_error = check_mongodb_connection()
+    if not mongo_connected:
+        logger.warning(f"MongoDB connection check failed: {mongo_error}")
+        logger.warning("The application will start, but MongoDB features may not work correctly.")
+
+        # Ask user if they want to continue
+        if os.environ.get('AUTO_CONTINUE_WITHOUT_MONGODB', 'false').lower() != 'true':
+            response = input("MongoDB connection failed. Continue anyway? (y/n): ")
+            if response.lower() != 'y':
+                logger.info("Exiting application as requested.")
+                sys.exit(1)
+    else:
+        logger.info("MongoDB connection check passed.")
+
+    # Get port from environment variable
+    port = int(os.environ.get('PORT', 5002))
+    debug = os.environ.get('DEBUG', 'true').lower() == 'true'
+
     # Start the SocketIO server
-    logger.info("Starting Flask-SocketIO server on http://0.0.0.0:5002")
-    socketio.run(app, host='0.0.0.0', port=5002, debug=True, allow_unsafe_werkzeug=True)
+    logger.info(f"Starting Flask-SocketIO server on http://0.0.0.0:{port}")
+    logger.info(f"Debug mode: {debug}")
+    socketio.run(app, host='0.0.0.0', port=port, debug=debug, allow_unsafe_werkzeug=True)
