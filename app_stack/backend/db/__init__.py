@@ -136,8 +136,21 @@ def init_chroma_collections():
     from .schemas import chroma_collections
 
     client = get_chroma_client()
+    tenant = os.environ.get('CHROMA_TENANT', 'default_tenant')
 
     try:
+        # Check if tenant exists and create it if needed
+        tenants = client.list_tenants()
+        tenant_names = [t.name for t in tenants]
+        
+        if tenant not in tenant_names:
+            logger.info(f"Creating Chroma tenant: {tenant}")
+            client.create_tenant(tenant)
+        
+        # Set tenant context
+        client.set_tenant(tenant)
+        logger.info(f"Using Chroma tenant: {tenant}")
+        
         # Get existing collections
         existing_collections = client.list_collections()
         existing_collection_names = [c.name for c in existing_collections]
